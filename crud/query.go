@@ -50,10 +50,12 @@ func (instance *Resource) FindWithBson(filterJSON string, opts FindOptions) *com
 func (instance *Resource) QueryWithBson(filterJSON string, opts FindOptions) *commons.PagingResponse {
 
 	var filter mongo.Pipeline
-	err := bson.UnmarshalExtJSON([]byte(filterJSON), true, &filter)
-	if err != nil {
-		logrus.Error(err, filterJSON)
-		return nil
+	if filterJSON != "" {
+		err := bson.UnmarshalExtJSON([]byte(filterJSON), true, &filter)
+		if err != nil {
+			logrus.Error(err, filterJSON)
+			return nil
+		}
 	}
 
 	return instance.Query(filter, opts)

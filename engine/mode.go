@@ -1,14 +1,17 @@
 package engine
 
 import (
+	"github.com/shoppehub/commons"
 	"github.com/shoppehub/fastapi/crud"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 type CollectionBody struct {
-	Filter bson.M                 `json:"filter"`
-	Body   map[string]interface{} `json:"body" `
-	Sort   []crud.Sort            `json:"sort" `
+	Filter    bson.M                 `json:"filter"`
+	Body      map[string]interface{} `json:"body" `
+	Sort      []crud.Sort            `json:"sort" `
+	Page      commons.PagingRequest  `json:"page" `
+	Aggregate string                 `json:"aggregate" `
 }
 
 func GetCollectionName() *string {

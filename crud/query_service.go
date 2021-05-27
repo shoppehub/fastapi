@@ -189,7 +189,7 @@ func (instance *Resource) Query(pipeline mongo.Pipeline, opts FindOptions) *comm
 		response.Data = opts.Results
 	} else {
 		var result []bson.M
-		if err = cursor.All(context.Background(), result); err != nil {
+		if err = cursor.All(context.Background(), &result); err != nil {
 			logrus.Error(err, pipeline)
 		}
 		response.Data = result

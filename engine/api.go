@@ -97,3 +97,28 @@ func DeleteId(resource *crud.Resource, c *gin.Context) {
 		Data:    id,
 	})
 }
+
+// 保存数据
+func Query(resource *crud.Resource, c *gin.Context) {
+	var query CollectionQuery
+
+	if err := c.ShouldBindUri(&query); err != nil {
+		c.JSON(400, commons.ActionResponse{Success: false, ErrMessage: err.Error()})
+		return
+	}
+
+	var body CollectionBody
+	c.ShouldBindJSON(&body)
+
+	dbCollection := query.GetDbCollection(resource, c)
+
+	var options crud.FindOptions
+	options.CollectionName = dbCollection.GetCollectionName()
+
+	result := resource.QueryWithBson(body.Aggregate, options)
+
+	c.JSON(http.StatusOK, commons.ActionResponse{
+		Success: true,
+		Data:    result,
+	})
+}

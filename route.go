@@ -38,6 +38,10 @@ func InitApi(resource *crud.Resource, r *gin.Engine) {
 			engine.DeleteId(resource, c)
 		})
 
+		apicol.POST("/:group/:collection/query", func(c *gin.Context) {
+			engine.Query(resource, c)
+		})
+
 	}
 
 }

@@ -1,4 +1,4 @@
-package fastapi
+package crud
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shoppehub/fastapi/base"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -24,7 +25,7 @@ func TestDel(t *testing.T) {
 		Name: "123456",
 		// Age:  1,
 		Time: &tt,
-		BaseId: BaseId{
+		BaseId: base.BaseId{
 			Id:        &id,
 			CreatedAt: &tt,
 		},
@@ -37,7 +38,7 @@ func TestDel(t *testing.T) {
 	}
 
 	result, err := DbTestInstance.SaveOrUpdateOne(u, &UpdateOption{
-		CollectionName: tableName,
+		CollectionName: &tableName,
 		Filter:         []string{"name"},
 		Inc: []Inc{{
 			Key:   "age",
@@ -50,7 +51,7 @@ func TestDel(t *testing.T) {
 	u.Id = &Id
 
 	result, err = DbTestInstance.SaveOrUpdateOne(u, &UpdateOption{
-		CollectionName: tableName,
+		CollectionName: &tableName,
 	})
 	if err != nil {
 		fmt.Println(err)

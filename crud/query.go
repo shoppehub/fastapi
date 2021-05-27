@@ -1,4 +1,4 @@
-package fastapi
+package crud
 
 import (
 	"log"

@@ -6,6 +6,7 @@ import (
 	filename "github.com/keepeye/logrus-filename"
 	"github.com/shoppehub/conf"
 	"github.com/shoppehub/fastapi"
+	"github.com/shoppehub/fastapi/crud"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,7 +22,7 @@ func main() {
 
 	conf.Init("")
 
-	instance, err := fastapi.NewDB(conf.GetString("mongodb.url"), conf.GetString("mongodb.dbname"))
+	instance, err := crud.NewDB(conf.GetString("mongodb.url"), conf.GetString("mongodb.dbname"))
 
 	if err != nil {
 		logrus.Error(err)

@@ -1,4 +1,4 @@
-package fastapi
+package crud
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/shoppehub/commons"
+	"github.com/shoppehub/fastapi/base"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -57,9 +58,10 @@ func (instance *Resource) FindOne(filter bson.M, result interface{}, opts FindOn
 		}
 	}
 	if sort == nil {
-		sort = bson.D{{ID, -1}}
+		sort = bson.D{{base.ID, -1}}
 	}
 	findOptions.SetSort(sort)
+
 	singerResult := instance.DB.Collection(tableName).FindOne(context.Background(), filter, findOptions)
 	singerResult.Decode(result)
 }

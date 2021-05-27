@@ -1,4 +1,4 @@
-package fastapi
+package crud
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/iancoleman/strcase"
+	"github.com/shoppehub/fastapi/base"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -21,7 +22,7 @@ const (
 // 集合的定义
 type UpdateOption struct {
 	// 集合名称
-	CollectionName string
+	CollectionName *string
 	// 过滤字段，如果设置则以字段为查询条件进行修改，如果都没有值则失败
 	Filter []string
 	// 自增字段
@@ -50,7 +51,9 @@ func (resource *Resource) SaveOrUpdateOne(u interface{}, updateOptions ...*Updat
 
 	if len(updateOptions) > 0 {
 		option = updateOptions[0]
-		collectionName = option.CollectionName
+		if option.CollectionName != nil {
+			collectionName = *option.CollectionName
+		}
 		filterField = option.Filter
 	}
 
@@ -87,11 +90,11 @@ func (resource *Resource) SaveOrUpdateOne(u interface{}, updateOptions ...*Updat
 
 	var filter bson.D
 
-	if len(filterField) == 0 || in(ID, filterField) {
-		if updateField.fieldMap[ID] == nil {
-			updateField.fieldMap[ID] = primitive.NewObjectID()
+	if len(filterField) == 0 || base.In(base.ID, filterField) {
+		if updateField.fieldMap[base.ID] == nil {
+			updateField.fieldMap[base.ID] = primitive.NewObjectID()
 		}
-		filter = append(filter, bson.E{ID, updateField.fieldMap[ID]})
+		filter = append(filter, bson.E{base.ID, updateField.fieldMap[base.ID]})
 	} else {
 		for _, f := range filterField {
 			obj := updateField.fieldMap[f]
@@ -148,7 +151,7 @@ func (updateField *updateField) wrapField(field reflect.StructField, value refle
 	if value.IsZero() {
 		return
 	}
-	name := getFieldName(field)
+	name := base.GetFieldName(field)
 	// 忽略该字段
 	if name == "" {
 		return
@@ -161,7 +164,7 @@ func (updateField *updateField) wrapField(field reflect.StructField, value refle
 		updateField.eachField(value.Interface(), innerValue)
 		val = innerValue
 	} else {
-		val = getFieldValue(value)
+		val = base.GetFieldValue(value)
 	}
 
 	if val == nil {

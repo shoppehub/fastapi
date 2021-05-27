@@ -1,8 +1,9 @@
-package fastapi
+package crud
 
 import (
 	"context"
 
+	"github.com/shoppehub/fastapi/base"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -23,7 +24,7 @@ func (resource *Resource) DeleteById(tableName string, id primitive.ObjectID) er
 		CollectionName: tableName,
 		Filter: []Filter{
 			0: {
-				Key:   ID,
+				Key:   base.ID,
 				Value: id,
 			},
 		},

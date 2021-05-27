@@ -1,4 +1,4 @@
-package fastapi
+package base
 
 import (
 	"reflect"
@@ -7,7 +7,7 @@ import (
 )
 
 // 通过反射获取字段名称
-func getFieldName(field reflect.StructField) string {
+func GetFieldName(field reflect.StructField) string {
 	name := field.Tag.Get("bson")
 	name = strings.Split(name, ",")[0]
 
@@ -23,7 +23,7 @@ func getFieldName(field reflect.StructField) string {
 }
 
 // 获取字段的实际值
-func getFieldValue(val reflect.Value) interface{} {
+func GetFieldValue(val reflect.Value) interface{} {
 
 	if val.CanInterface() {
 		return val.Interface()
@@ -32,7 +32,7 @@ func getFieldValue(val reflect.Value) interface{} {
 }
 
 // 判断字符串是否包含在数组内
-func in(target string, str_array []string) bool {
+func In(target string, str_array []string) bool {
 	sort.Strings(str_array)
 	index := sort.SearchStrings(str_array, target)
 	//index的取值：[0,len(str_array)]

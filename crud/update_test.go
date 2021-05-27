@@ -1,4 +1,4 @@
-package fastapi
+package crud
 
 import (
 	"context"
@@ -7,15 +7,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shoppehub/fastapi/base"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type user struct {
-	BaseId  `bson,inline`
-	Name    string     `json:"name,omitempty"`
-	Age     int64      `bson:"age" json:"age,omitempty" update:"inc"`
-	Time    *time.Time `bson:"time,omitempty" json:"time,omitempty" update:"skip"`
-	Profile *profile   `json:"profile,omitempty"`
+	base.BaseId `bson,inline`
+	Name        string     `json:"name,omitempty"`
+	Age         int64      `bson:"age" json:"age,omitempty" update:"inc"`
+	Time        *time.Time `bson:"time,omitempty" json:"time,omitempty" update:"skip"`
+	Profile     *profile   `json:"profile,omitempty"`
 }
 
 type profile struct {
@@ -40,7 +41,7 @@ func TestStruct(t *testing.T) {
 		Name: "123456",
 		// Age:  1,
 		Time: &tt,
-		BaseId: BaseId{
+		BaseId: base.BaseId{
 			Id:        &id,
 			CreatedAt: &tt,
 		},
@@ -53,7 +54,7 @@ func TestStruct(t *testing.T) {
 	}
 
 	result, err := DbTestInstance.SaveOrUpdateOne(u, &UpdateOption{
-		CollectionName: tableName,
+		CollectionName: &tableName,
 		Filter:         []string{0: "name"},
 		Inc: []Inc{0: Inc{
 			Key:   "age",
@@ -72,7 +73,7 @@ func TestStruct(t *testing.T) {
 
 	time.Sleep(time.Duration(2) * time.Second)
 	r2, err := DbTestInstance.SaveOrUpdateOne(u, &UpdateOption{
-		CollectionName: tableName,
+		CollectionName: &tableName,
 		Filter:         []string{0: "name"},
 		Inc: []Inc{0: {
 			Key:   "age",

@@ -1,4 +1,4 @@
-package fastapi
+package crud
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/shoppehub/fastapi/collection"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -65,7 +66,7 @@ func TestFindOne(t *testing.T) {
 
 	initTestDb()
 
-	var result Collection
+	var result collection.Collection
 
 	filter := bson.M{"name": "demo"}
 
@@ -82,7 +83,7 @@ func TestFindId(t *testing.T) {
 
 	initTestDb()
 
-	var result Collection
+	var result collection.Collection
 	// oid, _ := primitive.ObjectIDFromHex("60ab75b9b6dcb68ed62efb11")
 	// DbTestInstance.FindOne(bson.M{"_id": oid}, &result)
 

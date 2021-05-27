@@ -1,0 +1,3 @@
+mongodb:
+  url: mongodb:///dbname?replicaSet=mgset-47517392
+  dbname: chemball

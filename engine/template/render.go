@@ -6,9 +6,24 @@ import (
 	"github.com/CloudyKit/jet/v6"
 	"github.com/shoppehub/fastapi/collection"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 var views *jet.Set
+
+type Match struct {
+	Cache []bson.D
+}
+
+func (d *Match) put(operator string, key string, value interface{}) {
+
+	switch operator {
+	case "gt":
+		d.Cache = append(d.Cache, bson.D{{key, bson.D{{"gt", value}}}})
+
+	}
+
+}
 
 func init() {
 	httpfsLoader := NewStringLoader()

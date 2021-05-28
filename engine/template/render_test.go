@@ -9,6 +9,7 @@ import (
 	"github.com/CloudyKit/jet/v6"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func TestRender(t *testing.T) {
@@ -20,14 +21,11 @@ func TestRender(t *testing.T) {
 		{ $sort: { total: -1 } }
 	])
 	
-	{{ m := map("foo", "bar", "asd", 123)}}
-{{ range k := m }}
-    {{k}}: {{.}}
-{{ end }}
-	{{ pid := "123" }}
-	{{if pid =="123"}}
-		{{ pipeline("all","{\"name\":1}") }}
-	{{end}}
+
+		{{  match := addMatch("all","name","joe" }}
+		// {{  match.eq("bizType","view") }}
+		// {{  match.exits("title","$exits",true) }}
+
 	`
 
 	template, err := views.Parse("demo", templ)
@@ -47,11 +45,19 @@ func TestRender(t *testing.T) {
 	// 	return reflect.ValueOf(base64.URLEncoding.EncodeToString(buffer.Bytes()))
 	// })
 
-	vars.SetFunc("pipeline", func(a jet.Arguments) reflect.Value {
-		// a.RequireNumOfArguments("base64", 1, 1)
+	bsonMap := make(map[string]mongo.Pipeline)
 
-		fmt.Println("out:", a.Get(0))
+	vars.SetFunc("addMatch", func(a jet.Arguments) reflect.Value {
+		// a.RequireNumOfArguments("base64", 1, 1)
+		valName := a.Get(0).Interface().(string)
 		jsonStr := a.Get(1).Interface().(string)
+		piple := mongo.Pipeline{}
+
+		if bsonMap[valName] == nil {
+			bsonMap[valName] = piple
+		}
+
+		fmt.Println("valName:", valName)
 		var m bson.M
 		bson.UnmarshalExtJSON([]byte(jsonStr), true, &m)
 		fmt.Println("out:", m)

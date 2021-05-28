@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/CloudyKit/jet/v6"
+	"github.com/shoppehub/fastapi/collection"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,7 +17,8 @@ func init() {
 	)
 }
 
-func Render(templateName string) (string, error) {
+// 根据名称进行匹配
+func Render(templateName string, collection collection.Collection) (string, error) {
 
 	view, err := views.GetTemplate(templateName)
 	if err != nil {

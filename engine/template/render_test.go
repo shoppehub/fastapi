@@ -1,75 +1,35 @@
 package template
 
 import (
-	"bytes"
-	"fmt"
-	"reflect"
 	"testing"
 
-	"github.com/CloudyKit/jet/v6"
-	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/shoppehub/fastapi/collection"
 )
 
 func TestRender(t *testing.T) {
 
 	templ := `
-	db.orders.aggregate([
-		{ $match: { status: "A" } },
-		{ $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
-		{ $sort: { total: -1 } }
-	])
-	
+		{{  name := "123"}}
+		{{ filter := d( "$match",d("age",d("gt",1),"name",name) ) }}
+		{{ limit := d( "$limit",1)  }}
+		{{ categorys := aggregate(filter,limit) }}
 
-		{{  match := addMatch("all","name","joe" }}
-		// {{  match.eq("bizType","view") }}
-		// {{  match.exits("title","$exits",true) }}
-
+		{{context("categorys",categorys)}}
 	`
 
-	template, err := views.Parse("demo", templ)
-	if err != nil {
-		logrus.Error(err)
+	col := collection.Collection{
+		Functions: make(map[string]collection.Function),
+	}
+	fun := collection.Function{
+		Template: templ,
 	}
 
-	var resp bytes.Buffer
-	vars := make(jet.VarMap)
+	col.Functions["demo"] = fun
 
-	// vars.SetFunc("base64", func(a jet.Arguments) reflect.Value {
-	// 	// a.RequireNumOfArguments("base64", 1, 1)
-
-	// 	buffer := bytes.NewBuffer(nil)
-	// 	fmt.Fprint(buffer, a.Get(0))
-
-	// 	return reflect.ValueOf(base64.URLEncoding.EncodeToString(buffer.Bytes()))
-	// })
-
-	bsonMap := make(map[string]mongo.Pipeline)
-
-	vars.SetFunc("addMatch", func(a jet.Arguments) reflect.Value {
-		// a.RequireNumOfArguments("base64", 1, 1)
-		valName := a.Get(0).Interface().(string)
-		jsonStr := a.Get(1).Interface().(string)
-		piple := mongo.Pipeline{}
-
-		if bsonMap[valName] == nil {
-			bsonMap[valName] = piple
-		}
-
-		fmt.Println("valName:", valName)
-		var m bson.M
-		bson.UnmarshalExtJSON([]byte(jsonStr), true, &m)
-		fmt.Println("out:", m)
-
-		return reflect.ValueOf("")
-	})
-
-	if err = template.Execute(&resp, vars, nil); err != nil {
-		logrus.Error(err)
-
-	}
-
-	// fmt.Println(resp.String())
+	// result, err := Render(col, "demo", nil)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println(result, "success")
 
 }

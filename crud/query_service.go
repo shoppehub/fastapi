@@ -67,6 +67,21 @@ func (instance *Resource) FindOne(filter bson.M, result interface{}, opts FindOn
 }
 
 // @param filterJSON mongo查询语句
+func (instance *Resource) FindWithoutPaging(filter bson.M, opts FindOptions) []bson.M {
+
+	tableName := getTableName(opts.FindOneOptions)
+
+	cursor, err := instance.DB.Collection(tableName).Find(context.Background(), filter)
+
+	var result []bson.M
+	if err = cursor.All(context.Background(), &result); err != nil {
+		logrus.Error(err, filter)
+	}
+
+	return result
+}
+
+// @param filterJSON mongo查询语句
 func (instance *Resource) Find(filter bson.M, opts FindOptions) *commons.PagingResponse {
 
 	tableName := getTableName(opts.FindOneOptions)
@@ -110,7 +125,7 @@ func (instance *Resource) Find(filter bson.M, opts FindOptions) *commons.PagingR
 		response.Data = opts.Results
 	} else {
 		var result []bson.M
-		if err = cursor.All(context.Background(), result); err != nil {
+		if err = cursor.All(context.Background(), &result); err != nil {
 			logrus.Error(err, filter)
 		}
 		response.Data = result
@@ -196,4 +211,20 @@ func (instance *Resource) Query(pipeline mongo.Pipeline, opts FindOptions) *comm
 	}
 	response.Compute()
 	return &response
+}
+
+func (instance *Resource) QueryWithoutPaging(pipeline mongo.Pipeline, opts FindOptions) ([]bson.M, error) {
+
+	tableName := getTableName(opts.FindOneOptions)
+
+	var result []bson.M
+
+	cursor, err := instance.DB.Collection(tableName).Aggregate(context.Background(), pipeline)
+
+	if err = cursor.All(context.Background(), &result); err != nil {
+		logrus.Error(err, pipeline)
+		return nil, err
+	}
+
+	return result, nil
 }

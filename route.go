@@ -42,6 +42,10 @@ func InitApi(resource *crud.Resource, r *gin.Engine) {
 			engine.Query(resource, c)
 		})
 
+		apicol.POST("/func/:group/:collection/:func", func(c *gin.Context) {
+			engine.Func(resource, c)
+		})
+
 	}
 
 }

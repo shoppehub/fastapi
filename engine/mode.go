@@ -22,6 +22,8 @@ func GetCollectionName() *string {
 type CollectionQuery struct {
 	Group      string `uri:"group" binding:"required"`
 	Collection string `uri:"collection" binding:"required"`
+
+	Func string `uri:"func"`
 }
 
 func (q *CollectionQuery) toString() string {

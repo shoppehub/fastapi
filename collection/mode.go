@@ -10,13 +10,14 @@ import (
 // 集合
 type Collection struct {
 	base.BaseId `bson,inline`
-	Name        string            `bson:"name,omitempty" json:"name,omitempty" update:"setOnInsert"`
-	Description string            `bson:"description,omitempty" json:"description,omitempty"`
-	Version     int64             `bson:"version,omitempty" json:"version,omitempty"`
-	Extend      string            `bson:"extend,omitempty" json:"extend,omitempty"`
-	Owner       string            `bson:"owner,omitempty" json:"owner,omitempty"`
-	Fields      []CollectionField `bson:"fields,omitempty" json:"fields,omitempty"`
-	Developers  []Developer       `bson:"developers,omitempty" json:"developers,omitempty"`
+	Name        string              `bson:"name,omitempty" json:"name,omitempty" update:"setOnInsert"`
+	Description string              `bson:"description,omitempty" json:"description,omitempty"`
+	Version     int64               `bson:"version,omitempty" json:"version,omitempty"`
+	Extend      string              `bson:"extend,omitempty" json:"extend,omitempty"`
+	Owner       string              `bson:"owner,omitempty" json:"owner,omitempty"`
+	Fields      []CollectionField   `bson:"fields,omitempty" json:"fields,omitempty"`
+	Developers  []Developer         `bson:"developers,omitempty" json:"developers,omitempty"`
+	Functions   map[string]Function `bson:"functions,omitempty" json:"functions,omitempty"`
 }
 
 // 开发者
@@ -35,8 +36,11 @@ type CollectionField struct {
 	// 字段类型
 	Type string `bson:"type" json:"type"`
 	// 字段描述
-	Desc        string `bson:"desc,omitempty" json:"desc,omitempty"`
-	SetOnInsert bool   `bson:"setOnInsert,omitempty" json:"setOnInsert,omitempty"`
+	Desc string `bson:"desc,omitempty" json:"desc,omitempty"`
+
+	RefField bool `bson:"refField,omitempty" json:"refField,omitempty"`
+
+	SetOnInsert bool `bson:"setOnInsert,omitempty" json:"setOnInsert,omitempty"`
 	// 如果是内置对象模型，具体的字段是定义
 	Fields []CollectionField `bson:"fields,omitempty" json:"fields,omitempty"`
 
@@ -52,6 +56,12 @@ type CollectionField struct {
 type SelectOptions struct {
 	Label string `bson:"label" json:"label"`
 	Value string `bson:"value" json:"value"`
+}
+
+// 开发者
+type Function struct {
+	Params   []CollectionField `bson:"params,omitempty" json:"params,omitempty"`
+	Template string            `bson:"template,omitempty" json:"template,omitempty"`
 }
 
 type CollectionRequest struct {

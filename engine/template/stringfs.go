@@ -20,6 +20,10 @@ func NewStringLoader() jet.Loader {
 	}
 }
 
+func (l *stringLoader) PutTemplateString(key string, template string) {
+	l.templates[key] = template
+}
+
 // Open implements Loader.Open() on top of an http.FileSystem.
 func (l *stringLoader) Open(name string) (io.ReadCloser, error) {
 	return ioutil.NopCloser(strings.NewReader(l.templates[name])), nil

@@ -153,8 +153,7 @@ func (instance *Resource) Query(pipeline mongo.Pipeline, opts FindOptions) *comm
 	}
 	countPipeline = append(countPipeline, bson.D{{
 		"$count", "totalCount",
-	},
-	})
+	}})
 
 	countCursor, countErr := instance.DB.Collection(tableName).Aggregate(context.Background(), countPipeline)
 	if countErr != nil {
@@ -169,13 +168,15 @@ func (instance *Resource) Query(pipeline mongo.Pipeline, opts FindOptions) *comm
 	if opts.PageSize == 0 {
 		opts.PageSize = 15
 	}
+	if opts.CurPage == 0 {
+		opts.CurPage = 1
+	}
 	response.CurPage = opts.CurPage
 	response.PageSize = opts.PageSize
 
 	pipeline = append(pipeline, bson.D{{
 		"$limit", &opts.PageSize,
-	},
-	})
+	}})
 	skip := int64(0)
 	if opts.CurPage > 0 {
 		curPage := opts.CurPage

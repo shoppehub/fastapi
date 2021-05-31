@@ -173,6 +173,9 @@ func Query(resource *crud.Resource, c *gin.Context) {
 	var options crud.FindOptions
 	options.CollectionName = dbCollection.GetCollectionName()
 
+	options.CurPage = body.Page.CurPage
+	options.PageSize = body.Page.PageSize
+
 	result := resource.QueryWithBson(body.Aggregate, options)
 
 	c.JSON(http.StatusOK, commons.ActionResponse{

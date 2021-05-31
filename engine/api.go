@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"net/http"
@@ -21,7 +22,14 @@ func GetWithId(resource *crud.Resource, c *gin.Context) {
 	id := c.Params.ByName("id")
 	//result := NewStruct(collection)
 
-	dbCollection := query.GetDbCollection(resource, c)
+	dbCollection := query.GetDbCollection(resource)
+	if &dbCollection == nil {
+		c.JSON(http.StatusNotFound, commons.ActionResponse{
+			Success:    false,
+			ErrMessage: query.toString() + " not found",
+		})
+		return
+	}
 
 	result := make(map[string]interface{})
 
@@ -39,7 +47,14 @@ func FindOne(resource *crud.Resource, c *gin.Context) {
 
 	var body CollectionBody
 	c.ShouldBindJSON(&body)
-	dbCollection := query.GetDbCollection(resource, c)
+	dbCollection := query.GetDbCollection(resource)
+	if &dbCollection == nil {
+		c.JSON(http.StatusNotFound, commons.ActionResponse{
+			Success:    false,
+			ErrMessage: query.toString() + " not found",
+		})
+		return
+	}
 	result := make(map[string]interface{})
 	fmt.Println(body)
 	resource.FindOne(body.Filter, result,
@@ -70,8 +85,14 @@ func Post(resource *crud.Resource, c *gin.Context) {
 		return
 	}
 
-	dbCollection := query.GetDbCollection(resource, c)
-
+	dbCollection := query.GetDbCollection(resource)
+	if &dbCollection == nil {
+		c.JSON(http.StatusNotFound, commons.ActionResponse{
+			Success:    false,
+			ErrMessage: query.toString() + " not found",
+		})
+		return
+	}
 	obj, err := types.Convert(&body.Body, *dbCollection)
 	if err != nil {
 		c.JSON(http.StatusOK, commons.ActionResponse{
@@ -98,7 +119,14 @@ func DeleteId(resource *crud.Resource, c *gin.Context) {
 	id := c.Params.ByName("id")
 	//result := NewStruct(collection)
 
-	dbCollection := query.GetDbCollection(resource, c)
+	dbCollection := query.GetDbCollection(resource)
+	if &dbCollection == nil {
+		c.JSON(http.StatusNotFound, commons.ActionResponse{
+			Success:    false,
+			ErrMessage: query.toString() + " not found",
+		})
+		return
+	}
 
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -124,7 +152,15 @@ func Query(resource *crud.Resource, c *gin.Context) {
 	var body CollectionBody
 	c.ShouldBindJSON(&body)
 
-	dbCollection := query.GetDbCollection(resource, c)
+	dbCollection := query.GetDbCollection(resource)
+
+	if &dbCollection == nil {
+		c.JSON(http.StatusNotFound, commons.ActionResponse{
+			Success:    false,
+			ErrMessage: query.toString() + " not found",
+		})
+		return
+	}
 
 	var options crud.FindOptions
 	options.CollectionName = dbCollection.GetCollectionName()
@@ -146,12 +182,24 @@ func Func(resource *crud.Resource, c *gin.Context) {
 		return
 	}
 
-	var body CollectionBody
-	c.ShouldBindJSON(&body)
+	dbCollection := query.GetDbCollection(resource)
 
-	dbCollection := query.GetDbCollection(resource, c)
+	if &dbCollection == nil {
+		c.JSON(http.StatusNotFound, commons.ActionResponse{
+			Success:    false,
+			ErrMessage: query.toString() + " not found",
+		})
+		return
+	}
 
-	result, err := template.Render(resource, *dbCollection, query.Func, c)
+	body := make(map[string]interface{})
+
+	jsonData, _ := c.GetRawData()
+	if jsonData != nil {
+		json.Unmarshal(jsonData, &body)
+	}
+
+	result, err := template.Render(resource, *dbCollection, query.Func, body)
 
 	if err != nil {
 		c.JSON(http.StatusOK, commons.ActionResponse{

@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/shoppehub/fastapi/collection"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func TestConvert(t *testing.T) {
@@ -17,7 +16,7 @@ func TestConvert(t *testing.T) {
 
 	// a := [...]string{"1", "2"}
 
-	a := mongo.Pipeline{}
+	a := 12
 
 	fmt.Println(reflect.ValueOf(a).Type().Name())
 	rval := reflect.ValueOf(a)

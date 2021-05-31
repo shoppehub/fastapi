@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"sort"
 
 	"github.com/CloudyKit/jet/v6"
-	"github.com/gin-gonic/gin"
 	"github.com/shoppehub/fastapi/collection"
 	"github.com/shoppehub/fastapi/crud"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -27,7 +28,7 @@ func init() {
 }
 
 // 根据名称进行匹配
-func Render(resource *crud.Resource, collection collection.Collection, fnName string, c *gin.Context) (map[string]interface{}, error) {
+func Render(resource *crud.Resource, collection collection.Collection, fnName string, body map[string]interface{}) (map[string]interface{}, error) {
 
 	fun := collection.Functions[fnName]
 
@@ -36,7 +37,8 @@ func Render(resource *crud.Resource, collection collection.Collection, fnName st
 		loader.templates["/"+fnName] = fun.Template
 	}
 
-	view, err := views.GetTemplate(fnName)
+	// view, err := views.GetTemplate(fnName)
+	view, err := views.Parse(fnName, fun.Template)
 	if err != nil {
 		logrus.Error(err)
 		return nil, err
@@ -47,8 +49,6 @@ func Render(resource *crud.Resource, collection collection.Collection, fnName st
 
 	if fun.Params != nil {
 		for _, param := range fun.Params {
-			var body map[string]interface{}
-			c.ShouldBindJSON(&body)
 			if body[param.Name] != nil {
 				vars.Set(param.Name, body[param.Name])
 			}
@@ -62,14 +62,124 @@ func Render(resource *crud.Resource, collection collection.Collection, fnName st
 
 	fmt.Println(resp.String())
 
-	fmt.Println(result)
+	// fmt.Println(result)
 
 	return result, nil
+}
+
+//排序  start
+type MapsSort struct {
+	Key     string
+	MapList []bson.M
+	Desc    bool
+}
+
+func (m *MapsSort) Len() int {
+	return len(m.MapList)
+}
+
+func (m *MapsSort) Less(i, j int) bool {
+	if m.Desc {
+		return m.MapList[i][m.Key].(float64) > m.MapList[j][m.Key].(float64)
+	} else {
+		return m.MapList[i][m.Key].(float64) < m.MapList[j][m.Key].(float64)
+	}
+}
+
+func (m *MapsSort) Swap(i, j int) {
+	m.MapList[i], m.MapList[j] = m.MapList[j], m.MapList[i]
+}
+
+func Sort(key string, maps []bson.M, desc bool) []bson.M {
+	mapsSort := MapsSort{}
+	mapsSort.Key = key
+	mapsSort.MapList = maps
+	mapsSort.Desc = desc
+	sort.Sort(&mapsSort)
+
+	return mapsSort.MapList
 }
 
 // 初始化模板上下文
 func newVars(resource *crud.Resource, result map[string]interface{}) jet.VarMap {
 	vars := make(jet.VarMap)
+
+	vars.SetFunc("string", func(a jet.Arguments) reflect.Value {
+
+		if !a.Get(0).IsValid() {
+			return reflect.ValueOf("")
+		}
+
+		name := a.Get(0).Type().Name()
+
+		switch name {
+		case "ObjectID":
+			oid := a.Get(0).Interface().(primitive.ObjectID)
+			return reflect.ValueOf(oid.Hex())
+		case "int":
+			return reflect.ValueOf(fmt.Sprint(a.Get(0).Interface().(int)))
+		}
+
+		return reflect.ValueOf(a.Get(0).Interface())
+	})
+
+	vars.SetFunc("append", func(a jet.Arguments) reflect.Value {
+		name := a.Get(0).Type().Name()
+		if name == "M" {
+			m := a.Get(0).Interface().(bson.M)
+			if m[a.Get(1).String()] != nil {
+				val := append(m[a.Get(1).String()].([]bson.M), a.Get(2).Interface().(bson.M))
+				m[a.Get(1).String()] = val
+			} else {
+				val := []bson.M{a.Get(2).Interface().(bson.M)}
+				m[a.Get(1).String()] = val
+			}
+			return reflect.ValueOf(m)
+		} else {
+			m := a.Get(0).Interface().(map[string]interface{})
+			if m[a.Get(1).String()] != nil {
+				val := append(m[a.Get(1).String()].([]interface{}), a.Get(2).Interface())
+				m[a.Get(1).String()] = val
+			} else {
+				val := []interface{}{a.Get(2).Interface()}
+				m[a.Get(1).String()] = val
+			}
+			return reflect.ValueOf(m)
+		}
+	})
+
+	vars.SetFunc("map", func(a jet.Arguments) reflect.Value {
+		if a.NumOfArguments()%2 > 0 {
+			return reflect.ValueOf(make(map[string]interface{}))
+		}
+		m := reflect.ValueOf(make(map[string]interface{}, a.NumOfArguments()/2))
+		for i := 0; i < a.NumOfArguments(); i += 2 {
+
+			m.SetMapIndex(a.Get(i), a.Get(i+1))
+		}
+		return m
+	})
+
+	vars.SetFunc("put", func(a jet.Arguments) reflect.Value {
+
+		name := a.Get(0).Type().Name()
+
+		if name == "M" {
+			m := a.Get(0).Interface().(bson.M)
+			m[a.Get(1).String()] = a.Get(2).Interface()
+			return reflect.ValueOf(m)
+		} else {
+			m := a.Get(0).Interface().(map[string]interface{})
+			m[a.Get(1).String()] = a.Get(2).Interface()
+			return reflect.ValueOf(m)
+		}
+	})
+
+	vars.SetFunc("sort", func(a jet.Arguments) reflect.Value {
+
+		m := a.Get(0).Interface().([]bson.M)
+		return reflect.ValueOf(Sort(a.Get(1).String(), m, a.Get(2).Bool()))
+	})
 
 	vars.SetFunc("d", func(a jet.Arguments) reflect.Value {
 		d := bson.D{}

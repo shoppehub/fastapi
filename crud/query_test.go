@@ -14,7 +14,7 @@ const colName = "inventory"
 
 func TestBson(t *testing.T) {
 
-	filterJSON := "{}"
+	filterJSON := `{"_id":"ObjectId("60b4625808c3c857cf62b712")"}`
 
 	var filter bson.M
 	err := bson.UnmarshalExtJSON([]byte(filterJSON), true, &filter)

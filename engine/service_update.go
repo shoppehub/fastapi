@@ -14,13 +14,22 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func Save(resource *crud.Resource, collection collection.Collection, body CollectionBody) map[string]interface{} {
+func Save(resource *crud.Resource, collection collection.Collection, body CollectionBody) (map[string]interface{}, error) {
 
 	collectionName := collection.GetCollectionName()
 	hasDbResult := false
 
 	if body.Filter != nil && len(body.Filter) > 0 {
 		var dbResult map[string]interface{}
+
+		if body.Filter[base.ID] != "" {
+			oid, err := primitive.ObjectIDFromHex(body.Filter[base.ID].(string))
+			if err != nil {
+				return nil, err
+			}
+			body.Filter[base.ID] = oid
+		}
+
 		resource.FindOne(body.Filter, &dbResult, crud.FindOneOptions{
 			CollectionName: collectionName,
 		})
@@ -74,7 +83,7 @@ func Save(resource *crud.Resource, collection collection.Collection, body Collec
 	if err != nil {
 		updateBytes, _ := json.Marshal(update)
 		logrus.Error(err, string(updateBytes))
-		return nil
+		return nil, err
 	}
 	result := make(map[string]interface{})
 	if one.UpsertedID != nil {
@@ -88,5 +97,5 @@ func Save(resource *crud.Resource, collection collection.Collection, body Collec
 		})
 	}
 
-	return result
+	return result, nil
 }

@@ -103,7 +103,15 @@ func Post(resource *crud.Resource, c *gin.Context) {
 	}
 	body.Body = obj
 
-	result := Save(resource, *dbCollection, body)
+	result, serr := Save(resource, *dbCollection, body)
+
+	if serr != nil {
+		c.JSON(http.StatusOK, commons.ActionResponse{
+			Success:    false,
+			ErrMessage: serr.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, commons.ActionResponse{
 		Success: true,

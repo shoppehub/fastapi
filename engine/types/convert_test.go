@@ -3,13 +3,26 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"testing"
 
 	"github.com/shoppehub/fastapi/collection"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestConvert(t *testing.T) {
+
+	filterJSON := `{"_id":"ObjectId(\"60b4625808c3c857cf62b712\")"}`
+
+	var filter bson.M
+	err := bson.UnmarshalExtJSON([]byte(filterJSON), true, &filter)
+	if err != nil {
+		log.Println(err, filterJSON)
+		return
+	}
+
+	log.Println(filter["_id"])
 
 	// a := make(map[string]interface{})
 	// a := 12.1

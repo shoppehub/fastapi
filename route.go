@@ -27,10 +27,10 @@ func InitApi(resource *crud.Resource, r *gin.Engine) {
 		apicol.GET("/:group/:collection/:id", func(c *gin.Context) {
 			engine.GetWithId(resource, c)
 		})
-		apicol.POST("/:group/:collection/findone", func(c *gin.Context) {
+		apicol.POST("/findone/:group/:collection", func(c *gin.Context) {
 			engine.FindOne(resource, c)
 		})
-		apicol.POST("/:group/:collection/", func(c *gin.Context) {
+		apicol.POST("/save/:group/:collection", func(c *gin.Context) {
 			engine.Post(resource, c)
 		})
 
@@ -38,7 +38,7 @@ func InitApi(resource *crud.Resource, r *gin.Engine) {
 			engine.DeleteId(resource, c)
 		})
 
-		apicol.POST("/:group/:collection/query", func(c *gin.Context) {
+		apicol.POST("/query/:group/:collection", func(c *gin.Context) {
 			engine.Query(resource, c)
 		})
 

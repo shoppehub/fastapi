@@ -14,6 +14,7 @@ func CreateCollection(dBResource *crud.Resource, c *gin.Context) {
 
 	var col Collection
 	if err := c.ShouldBindJSON(&col); err != nil {
+
 		c.JSON(http.StatusBadRequest, commons.ActionResponse{
 			Success:    false,
 			ErrMessage: err.Error(),

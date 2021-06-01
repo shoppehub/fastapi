@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/shoppehub/fastapi/base"
@@ -51,6 +52,14 @@ func Save(resource *crud.Resource, collection collection.Collection, body Collec
 	now := time.Now()
 	for _, field := range collection.Fields {
 		value := body.Body[field.Name]
+
+		if field.Type == "id" {
+			fmt.Println(field)
+			value = crud.GenerateId(resource, field.IdKey, field.IdInitVal)
+			setOnInsertElements = append(setOnInsertElements, bson.E{field.Name, value})
+			continue
+		}
+
 		if field.Value == "time.Now()" {
 			value = now
 		}

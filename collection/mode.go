@@ -51,6 +51,10 @@ type CollectionField struct {
 	DefaultValue interface{} `bson:"defaultValue,omitempty" json:"defaultValue,omitempty"`
 	// 验证规则
 	Validate string `bson:"validate,omitempty" json:"validate,omitempty"`
+	// id 初始化值
+	IdInitVal int64 `bson:"idInitVal,omitempty" json:"idInitVal,omitempty"`
+	// id key
+	IdKey string `bson:"idKey,omitempty" json:"idKey,omitempty"`
 }
 
 type SelectOptions struct {

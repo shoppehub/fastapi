@@ -148,7 +148,7 @@ func DeleteId(resource *crud.Resource, c *gin.Context) {
 	})
 }
 
-// 保存数据
+// 查询数据
 func Query(resource *crud.Resource, c *gin.Context) {
 	var query CollectionQuery
 
@@ -184,7 +184,7 @@ func Query(resource *crud.Resource, c *gin.Context) {
 	})
 }
 
-// 保存数据
+// 执行脚本
 func Func(resource *crud.Resource, c *gin.Context) {
 	var query CollectionQuery
 

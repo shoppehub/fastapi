@@ -60,7 +60,7 @@ func Render(resource *crud.Resource, collection collection.Collection, fnName st
 		return nil, err
 	}
 
-	fmt.Println(resp.String())
+	// fmt.Println(resp.String())
 
 	// fmt.Println(result)
 

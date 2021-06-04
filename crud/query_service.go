@@ -118,6 +118,7 @@ func (instance *Resource) Find(filter bson.M, opts FindOptions) *commons.PagingR
 	}
 
 	cursor, err := instance.DB.Collection(tableName).Find(context.Background(), filter, option)
+
 	if opts.Results != nil {
 		if err = cursor.All(context.Background(), opts.Results); err != nil {
 			logrus.Error(err, filter)
@@ -174,21 +175,18 @@ func (instance *Resource) Query(pipeline mongo.Pipeline, opts FindOptions) *comm
 	response.CurPage = opts.CurPage
 	response.PageSize = opts.PageSize
 
-	pipeline = append(pipeline, bson.D{{
-		"$limit", &opts.PageSize,
-	}})
 	skip := int64(0)
 	if opts.CurPage > 0 {
 		curPage := opts.CurPage
 		pageSize := opts.PageSize
 		skip = (curPage - 1) * pageSize
-
-		pipeline = append(pipeline, bson.D{{
-			"$skip", skip,
-		}})
 	}
 	pipeline = append(pipeline, bson.D{{
-		"$skip", skip,
+		"$skip", &skip,
+	}})
+
+	pipeline = append(pipeline, bson.D{{
+		"$limit", &opts.PageSize,
 	}})
 
 	cursor, err := instance.DB.Collection(tableName).Aggregate(context.Background(), pipeline)

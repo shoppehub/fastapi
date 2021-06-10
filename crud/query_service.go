@@ -164,7 +164,13 @@ func (instance *Resource) Query(pipeline mongo.Pipeline, opts FindOptions) *comm
 	}
 	var response2 []commons.PagingResponse
 	countCursor.All(context.Background(), &response2)
-	response.TotalCount = response2[0].TotalCount
+
+	if len(response2) > 0 {
+		response.TotalCount = response2[0].TotalCount
+	} else {
+		// 没有数据的情况下，不用查询啦
+		return &response
+	}
 
 	if opts.PageSize == 0 {
 		opts.PageSize = 15

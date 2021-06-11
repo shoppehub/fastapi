@@ -1,16 +1,25 @@
 package fastapi
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/shoppehub/fastapi/collection"
 	"github.com/shoppehub/fastapi/crud"
 	"github.com/shoppehub/fastapi/engine"
+	"github.com/shoppehub/fastapi/session"
 )
 
 func InitApi(resource *crud.Resource, r *gin.Engine) {
 
 	apiv1 := r.Group("/api/v1")
 	{
+		apiv1.GET("/getip", func(c *gin.Context) {
+			ip, _ := session.GetIP(c.Request)
+			c.JSON(http.StatusOK, gin.H{
+				"ip": ip,
+			})
+		})
 		apiv1.POST("/collection", func(c *gin.Context) {
 			collection.CreateCollection(resource, c)
 		})

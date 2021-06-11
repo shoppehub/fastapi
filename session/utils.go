@@ -1,18 +1,21 @@
 package session
 
 import (
-	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
-func GetIP(r *http.Request) (string, error) {
+// 获取ip
+func GetIP(r *http.Request) string {
 	//Get IP from the X-REAL-IP header
 	ip := r.Header.Get("X-REAL-IP")
 	netIP := net.ParseIP(ip)
 	if netIP != nil {
-		return ip, nil
+		return ip
 	}
 
 	//Get IP from X-FORWARDED-FOR header
@@ -21,18 +24,41 @@ func GetIP(r *http.Request) (string, error) {
 	for _, ip := range splitIps {
 		netIP := net.ParseIP(ip)
 		if netIP != nil {
-			return ip, nil
+			return ip
 		}
 	}
 
 	//Get IP from RemoteAddr
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
-		return "", err
+		logrus.Error(err)
+		return ""
 	}
 	netIP = net.ParseIP(ip)
 	if netIP != nil {
-		return ip, nil
+		return ip
 	}
-	return "", fmt.Errorf("No valid ip found")
+	logrus.Error("no ip!!!")
+	return ip
+}
+
+// 获取域名
+func GetDomain(host string) string {
+	host = strings.TrimSpace(host)
+
+	hostPorts := strings.Split(host, ":")
+
+	hostParts := strings.Split(hostPorts[0], ".")
+	lengthOfHostParts := len(hostParts)
+
+	if lengthOfHostParts == 1 {
+		return hostParts[0] // scenario C
+	} else {
+		_, err := strconv.ParseFloat(hostParts[0], 64)
+		if err == nil {
+			return host
+		} else {
+			return strings.Join([]string{hostParts[lengthOfHostParts-2], hostParts[lengthOfHostParts-1]}, ".")
+		}
+	}
 }

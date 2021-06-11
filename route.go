@@ -12,14 +12,27 @@ import (
 
 func InitApi(resource *crud.Resource, r *gin.Engine) {
 
+	session.Init()
+
+	r.Use(func(c *gin.Context) {
+		session.WrapUserSession(resource, c.Request)
+	})
+
 	apiv1 := r.Group("/api/v1")
 	{
 		apiv1.GET("/getip", func(c *gin.Context) {
-			ip, _ := session.GetIP(c.Request)
+			ip := session.GetIP(c.Request)
 			c.JSON(http.StatusOK, gin.H{
 				"ip": ip,
 			})
 		})
+		// apiv1.GET("/user", func(c *gin.Context) {
+		// 	c.JSON(http.StatusOK, session.GetUserSession(c.Request))
+		// })
+		// apiv1.GET("/user/login", func(c *gin.Context) {
+		// 	s := session.NewUserSession(resource, primitive.NewObjectID().Hex(), c.Request, c.Writer)
+		// 	c.JSON(http.StatusOK, s)
+		// })
 		apiv1.POST("/collection", func(c *gin.Context) {
 			collection.CreateCollection(resource, c)
 		})

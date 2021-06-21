@@ -3,6 +3,7 @@ package template
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"reflect"
 	"sort"
 
@@ -213,6 +214,15 @@ func newVars(resource *crud.Resource, result map[string]interface{}) jet.VarMap 
 		}
 		m := reflect.ValueOf(d)
 		return m
+	})
+
+	vars.SetFunc("ceil", func(a jet.Arguments) reflect.Value {
+		value := a.Get(0).Interface()
+		return reflect.ValueOf(int(math.Ceil(value.(float64))))
+	})
+	vars.SetFunc("floor", func(a jet.Arguments) reflect.Value {
+		value := a.Get(0).Interface()
+		return reflect.ValueOf(int(math.Floor(value.(float64))))
 	})
 
 	vars.SetFunc("findOption", func(a jet.Arguments) reflect.Value {

@@ -15,3 +15,7 @@
 # vendor/
 
 app.yaml
+
+.DS_Store
+node_modules
+dist

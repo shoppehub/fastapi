@@ -46,7 +46,7 @@ func Render(resource *crud.Resource, collection collection.Collection, fnName st
 	}
 	var resp bytes.Buffer
 	result := make(map[string]interface{})
-	vars := newVars(resource, result)
+	vars := NewVars(resource, result)
 
 	if fun.Params != nil {
 		for _, param := range fun.Params {
@@ -102,7 +102,7 @@ func Sort(key string, maps []bson.M, desc bool) []bson.M {
 }
 
 // 初始化模板上下文
-func newVars(resource *crud.Resource, result map[string]interface{}) jet.VarMap {
+func NewVars(resource *crud.Resource, result map[string]interface{}) jet.VarMap {
 	vars := make(jet.VarMap)
 
 	vars.SetFunc("string", func(a jet.Arguments) reflect.Value {
@@ -176,10 +176,43 @@ func newVars(resource *crud.Resource, result map[string]interface{}) jet.VarMap 
 		}
 	})
 
+	vars.SetFunc("context", func(a jet.Arguments) reflect.Value {
+		result[a.Get(0).String()] = a.Get(1).Interface()
+		return reflect.ValueOf(result)
+	})
+
+	initDataBase(resource, &vars)
+	initMath(&vars)
+
+	return vars
+}
+
+func initMath(vars *jet.VarMap) {
 	vars.SetFunc("sort", func(a jet.Arguments) reflect.Value {
 
 		m := a.Get(0).Interface().([]bson.M)
 		return reflect.ValueOf(Sort(a.Get(1).String(), m, a.Get(2).Bool()))
+	})
+	vars.SetFunc("ceil", func(a jet.Arguments) reflect.Value {
+		value := a.Get(0).Interface()
+		return reflect.ValueOf(int(math.Ceil(value.(float64))))
+	})
+	vars.SetFunc("floor", func(a jet.Arguments) reflect.Value {
+		value := a.Get(0).Interface()
+		return reflect.ValueOf(int(math.Floor(value.(float64))))
+	})
+}
+
+func initDataBase(resource *crud.Resource, vars *jet.VarMap) {
+
+	vars.SetFunc("m", func(a jet.Arguments) reflect.Value {
+		d := bson.M{}
+
+		for i := 0; i < a.NumOfArguments(); i += 2 {
+			d[a.Get(i).String()] = a.Get(i + 1).Interface()
+		}
+		m := reflect.ValueOf(d)
+		return m
 	})
 
 	vars.SetFunc("d", func(a jet.Arguments) reflect.Value {
@@ -204,25 +237,6 @@ func newVars(resource *crud.Resource, result map[string]interface{}) jet.VarMap 
 		m := reflect.ValueOf(p)
 
 		return m
-	})
-
-	vars.SetFunc("m", func(a jet.Arguments) reflect.Value {
-		d := bson.M{}
-
-		for i := 0; i < a.NumOfArguments(); i += 2 {
-			d[a.Get(i).String()] = a.Get(i + 1).Interface()
-		}
-		m := reflect.ValueOf(d)
-		return m
-	})
-
-	vars.SetFunc("ceil", func(a jet.Arguments) reflect.Value {
-		value := a.Get(0).Interface()
-		return reflect.ValueOf(int(math.Ceil(value.(float64))))
-	})
-	vars.SetFunc("floor", func(a jet.Arguments) reflect.Value {
-		value := a.Get(0).Interface()
-		return reflect.ValueOf(int(math.Floor(value.(float64))))
 	})
 
 	vars.SetFunc("findOption", func(a jet.Arguments) reflect.Value {
@@ -272,11 +286,13 @@ func newVars(resource *crud.Resource, result map[string]interface{}) jet.VarMap 
 		}
 	})
 
-	vars.SetFunc("context", func(a jet.Arguments) reflect.Value {
-		// r := *result
-
-		result[a.Get(0).String()] = a.Get(1).Interface()
+	vars.SetFunc("save", func(a jet.Arguments) reflect.Value {
+		collectionName := a.Get(0).Interface().(string)
+		data := a.Get(1).Interface()
+		result, _ := resource.SaveOrUpdateOne(data, &crud.UpdateOption{
+			CollectionName: &collectionName,
+		})
 		return reflect.ValueOf(result)
 	})
-	return vars
+
 }

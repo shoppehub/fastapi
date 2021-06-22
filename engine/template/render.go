@@ -249,14 +249,16 @@ func initDataBase(resource *crud.Resource, vars *jet.VarMap) {
 			if reflect.ValueOf(curPage).Kind() == reflect.Int {
 				d.CurPage = int64(curPage.(int))
 			} else {
-				d.CurPage = curPage.(int64)
+				v := curPage.(float64)
+				d.CurPage = int64(v)
 			}
 
 			pageSize := a.Get(2).Interface()
 			if reflect.ValueOf(pageSize).Kind() == reflect.Int {
 				d.PageSize = int64(pageSize.(int))
 			} else {
-				d.PageSize = pageSize.(int64)
+				v := pageSize.(float64)
+				d.PageSize = int64(v)
 			}
 		}
 		m := reflect.ValueOf(d)

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/shoppehub/fastapi/collection"
+	"github.com/shoppehub/fastapi/crud"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -86,7 +87,7 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	result, cerr := Convert(&m, col)
+	result, cerr := Convert(&crud.Resource{}, &m, col)
 	if cerr != nil {
 		fmt.Println(cerr)
 	}

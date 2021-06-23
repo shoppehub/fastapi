@@ -1,4 +1,4 @@
-package engine
+package service
 
 import (
 	"github.com/shoppehub/fastapi/collection"
@@ -8,7 +8,7 @@ import (
 
 func (query *CollectionQuery) GetDbCollection(resource *crud.Resource) *collection.Collection {
 	var dbCollection collection.Collection
-	filter := bson.M{"name": query.toString()}
+	filter := bson.M{"name": query.ToString()}
 	resource.FindOne(filter, &dbCollection, crud.FindOneOptions{CollectionName: GetCollectionName()})
 
 	return &dbCollection

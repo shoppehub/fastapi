@@ -9,38 +9,29 @@ import (
 	"time"
 
 	"github.com/shoppehub/fastapi/collection"
+	"github.com/shoppehub/fastapi/crud"
+	"github.com/shoppehub/fastapi/engine/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // 转换数据类型
-func Convert(value *map[string]interface{}, col collection.Collection) (map[string]interface{}, error) {
+func Convert(resource *crud.Resource, value *map[string]interface{}, col collection.Collection) (map[string]interface{}, error) {
 
 	mvalue := *value
-	// mFields := make(map[string]*collection.CollectionField)
-	// for _, field := range col.Fields {
-	// 	f := field
-	// 	mFields[field.Name] = &f
-	// }
-
-	// for key, v := range mvalue {
-	// 	if mFields[key] != nil {
-	// 		v1, err := ConvertField(v, *mFields[key])
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 		result[key] = v1
-	// 	}
-	// }
-
 	result := make(map[string]interface{})
-
 	for _, field := range col.Fields {
+
+		// logrus.Error(field.Name, mvalue[field.Name], field.RefField)
+
 		// 关联字段也忽略，没有值也忽略
-		if mvalue[field.Name] == nil || field.RefField {
+		// if mvalue[field.Name] == nil || field.RefField {
+		// 	continue
+		// }
+		if mvalue[field.Name] == nil {
 			continue
 		}
 
-		val, err := ConvertField(mvalue[field.Name], field)
+		val, err := ConvertField(resource, mvalue[field.Name], field)
 		if err != nil {
 			return nil, err
 		}
@@ -50,7 +41,7 @@ func Convert(value *map[string]interface{}, col collection.Collection) (map[stri
 	return result, nil
 }
 
-func ConvertField(value interface{}, field collection.CollectionField) (interface{}, error) {
+func ConvertField(resource *crud.Resource, value interface{}, field collection.CollectionField) (interface{}, error) {
 
 	if field.Type == "" {
 		return value, nil
@@ -58,12 +49,24 @@ func ConvertField(value interface{}, field collection.CollectionField) (interfac
 
 	rval := reflect.ValueOf(value)
 	kind := rval.Kind()
-
+	if strings.Contains(field.Type, "/") {
+		// 外部内容
+		strs := strings.Split(field.Type, "/")
+		q := service.CollectionQuery{
+			Group:      strs[0],
+			Collection: strs[1],
+		}
+		dbCollection := q.GetDbCollection(resource)
+		if &dbCollection == nil {
+			return value, nil
+		}
+		field.Fields = dbCollection.Fields
+	}
 	if strings.HasSuffix(field.Type, "[]") {
-		return handerArray(kind, value, field)
+		return handerArray(resource, kind, value, field)
 	}
 	if kind == reflect.Map {
-		return handerMap(value, field)
+		return handerMap(resource, value, field)
 	}
 	if kind == reflect.String {
 		return handerString(value, field)
@@ -71,7 +74,7 @@ func ConvertField(value interface{}, field collection.CollectionField) (interfac
 	return value, nil
 }
 
-func handerArray(kind reflect.Kind, value interface{}, field collection.CollectionField) (interface{}, error) {
+func handerArray(resource *crud.Resource, kind reflect.Kind, value interface{}, field collection.CollectionField) (interface{}, error) {
 
 	if kind != reflect.Slice && kind != reflect.Array {
 		ejson, _ := json.Marshal(value)
@@ -80,19 +83,30 @@ func handerArray(kind reflect.Kind, value interface{}, field collection.Collecti
 		m := value.([]interface{})
 		val := make([]interface{}, len(m))
 		for i, v := range m {
-			v1, err := ConvertField(v, collection.CollectionField{
-				Type: strings.TrimSuffix(field.Type, "[]"),
-			})
-			if err != nil {
-				return nil, err
+
+			otype := strings.TrimSuffix(field.Type, "[]")
+			if otype == "object" {
+				objectVal, err := handerMap(resource, v, field)
+				if err != nil {
+					ejson, _ := json.Marshal(v)
+					return nil, errors.New("value :" + string(ejson) + " convert to object err")
+				}
+				val[i] = objectVal
+			} else {
+				v1, err := ConvertField(resource, v, collection.CollectionField{
+					Type: strings.TrimSuffix(field.Type, "[]"),
+				})
+				if err != nil {
+					return nil, err
+				}
+				val[i] = v1
 			}
-			val[i] = v1
 		}
 		return val, nil
 	}
 }
 
-func handerMap(value interface{}, field collection.CollectionField) (interface{}, error) {
+func handerMap(resource *crud.Resource, value interface{}, field collection.CollectionField) (interface{}, error) {
 	val := make(map[string]interface{})
 	m := value.(map[string]interface{})
 	if field.Fields == nil {
@@ -102,7 +116,7 @@ func handerMap(value interface{}, field collection.CollectionField) (interface{}
 	for key, v := range m {
 		for _, f := range field.Fields {
 			if key == f.Name {
-				v1, err := ConvertField(v, f)
+				v1, err := ConvertField(resource, v, f)
 				if err != nil {
 					return nil, err
 				}

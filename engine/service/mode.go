@@ -1,4 +1,4 @@
-package engine
+package service
 
 import (
 	"github.com/shoppehub/commons"
@@ -25,12 +25,12 @@ type CollectionQuery struct {
 	Func string `uri:"func"`
 }
 
-func (q *CollectionQuery) toString() string {
+func (q *CollectionQuery) ToString() string {
 	str := q.Group + "/" + q.Collection
 	return str
 }
 
-func (q *CollectionQuery) getCollectionName() *string {
+func (q *CollectionQuery) GetCollectionName() *string {
 	name := q.Group + "_" + q.Collection
 	return &name
 }

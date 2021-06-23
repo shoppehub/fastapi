@@ -1,4 +1,4 @@
-package engine
+package service
 
 import (
 	"github.com/shoppehub/fastapi/collection"

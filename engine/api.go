@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shoppehub/commons"
 	"github.com/shoppehub/fastapi/crud"
+	"github.com/shoppehub/fastapi/engine/service"
 	"github.com/shoppehub/fastapi/engine/template"
 	"github.com/shoppehub/fastapi/engine/types"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -16,7 +17,7 @@ import (
 
 // 根据id查询数据
 func GetWithId(resource *crud.Resource, c *gin.Context) {
-	var query CollectionQuery
+	var query service.CollectionQuery
 	c.ShouldBindUri(&query)
 
 	id := c.Params.ByName("id")
@@ -26,7 +27,7 @@ func GetWithId(resource *crud.Resource, c *gin.Context) {
 	if &dbCollection == nil {
 		c.JSON(http.StatusNotFound, commons.ActionResponse{
 			Success:    false,
-			ErrMessage: query.toString() + " not found",
+			ErrMessage: query.ToString() + " not found",
 		})
 		return
 	}
@@ -42,16 +43,16 @@ func GetWithId(resource *crud.Resource, c *gin.Context) {
 
 // 查询单个数据
 func FindOne(resource *crud.Resource, c *gin.Context) {
-	var query CollectionQuery
+	var query service.CollectionQuery
 	c.ShouldBindUri(&query)
 
-	var body CollectionBody
+	var body service.CollectionBody
 	c.ShouldBindJSON(&body)
 	dbCollection := query.GetDbCollection(resource)
 	if &dbCollection == nil {
 		c.JSON(http.StatusNotFound, commons.ActionResponse{
 			Success:    false,
-			ErrMessage: query.toString() + " not found",
+			ErrMessage: query.ToString() + " not found",
 		})
 		return
 	}
@@ -70,14 +71,14 @@ func FindOne(resource *crud.Resource, c *gin.Context) {
 
 // 保存数据
 func Post(resource *crud.Resource, c *gin.Context) {
-	var query CollectionQuery
+	var query service.CollectionQuery
 
 	if err := c.ShouldBindUri(&query); err != nil {
 		c.JSON(400, commons.ActionResponse{Success: false, ErrMessage: err.Error()})
 		return
 	}
 
-	var body CollectionBody
+	var body service.CollectionBody
 	c.ShouldBindJSON(&body)
 
 	if body.Body == nil || len(body.Body) == 0 {
@@ -89,11 +90,11 @@ func Post(resource *crud.Resource, c *gin.Context) {
 	if &dbCollection == nil {
 		c.JSON(http.StatusNotFound, commons.ActionResponse{
 			Success:    false,
-			ErrMessage: query.toString() + " not found",
+			ErrMessage: query.ToString() + " not found",
 		})
 		return
 	}
-	obj, err := types.Convert(&body.Body, *dbCollection)
+	obj, err := types.Convert(resource, &body.Body, *dbCollection)
 	if err != nil {
 		c.JSON(http.StatusOK, commons.ActionResponse{
 			Success:    false,
@@ -103,7 +104,7 @@ func Post(resource *crud.Resource, c *gin.Context) {
 	}
 	body.Body = obj
 
-	result, serr := Save(resource, *dbCollection, body)
+	result, serr := service.Save(resource, *dbCollection, body)
 
 	if serr != nil {
 		c.JSON(http.StatusOK, commons.ActionResponse{
@@ -121,7 +122,7 @@ func Post(resource *crud.Resource, c *gin.Context) {
 
 // 根据id查询数据
 func DeleteId(resource *crud.Resource, c *gin.Context) {
-	var query CollectionQuery
+	var query service.CollectionQuery
 	c.ShouldBindUri(&query)
 
 	id := c.Params.ByName("id")
@@ -131,7 +132,7 @@ func DeleteId(resource *crud.Resource, c *gin.Context) {
 	if &dbCollection == nil {
 		c.JSON(http.StatusNotFound, commons.ActionResponse{
 			Success:    false,
-			ErrMessage: query.toString() + " not found",
+			ErrMessage: query.ToString() + " not found",
 		})
 		return
 	}
@@ -150,14 +151,14 @@ func DeleteId(resource *crud.Resource, c *gin.Context) {
 
 // 查询数据
 func Query(resource *crud.Resource, c *gin.Context) {
-	var query CollectionQuery
+	var query service.CollectionQuery
 
 	if err := c.ShouldBindUri(&query); err != nil {
 		c.JSON(400, commons.ActionResponse{Success: false, ErrMessage: err.Error()})
 		return
 	}
 
-	var body CollectionBody
+	var body service.CollectionBody
 	c.ShouldBindJSON(&body)
 
 	dbCollection := query.GetDbCollection(resource)
@@ -165,7 +166,7 @@ func Query(resource *crud.Resource, c *gin.Context) {
 	if &dbCollection == nil {
 		c.JSON(http.StatusNotFound, commons.ActionResponse{
 			Success:    false,
-			ErrMessage: query.toString() + " not found",
+			ErrMessage: query.ToString() + " not found",
 		})
 		return
 	}
@@ -186,7 +187,7 @@ func Query(resource *crud.Resource, c *gin.Context) {
 
 // 执行脚本
 func Func(resource *crud.Resource, c *gin.Context) {
-	var query CollectionQuery
+	var query service.CollectionQuery
 
 	if err := c.ShouldBindUri(&query); err != nil {
 		c.JSON(400, commons.ActionResponse{Success: false, ErrMessage: err.Error()})
@@ -198,7 +199,7 @@ func Func(resource *crud.Resource, c *gin.Context) {
 	if &dbCollection == nil {
 		c.JSON(http.StatusNotFound, commons.ActionResponse{
 			Success:    false,
-			ErrMessage: query.toString() + " not found",
+			ErrMessage: query.ToString() + " not found",
 		})
 		return
 	}

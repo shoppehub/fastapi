@@ -62,6 +62,11 @@ func ConvertField(resource *crud.Resource, value interface{}, field collection.C
 		}
 		field.Fields = dbCollection.Fields
 	}
+
+	if field.Type == "object" {
+		return handerMap(resource, value, field)
+	}
+
 	if strings.HasSuffix(field.Type, "[]") {
 		return handerArray(resource, kind, value, field)
 	}

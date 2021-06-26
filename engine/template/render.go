@@ -56,7 +56,7 @@ func Render(resource *crud.Resource, collection collection.Collection, fnName st
 		}
 	}
 
-	if err = view.Execute(&resp, vars, nil); err != nil {
+	if err = view.Execute(&resp, *vars, nil); err != nil {
 		logrus.Error(err)
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func Sort(key string, maps []bson.M, desc bool) []bson.M {
 }
 
 // 初始化模板上下文
-func NewVars(resource *crud.Resource, result map[string]interface{}) jet.VarMap {
+func NewVars(resource *crud.Resource, result map[string]interface{}) *jet.VarMap {
 	vars := make(jet.VarMap)
 
 	vars.SetFunc("string", func(a jet.Arguments) reflect.Value {
@@ -184,7 +184,7 @@ func NewVars(resource *crud.Resource, result map[string]interface{}) jet.VarMap 
 	initDataBase(resource, &vars)
 	initMath(&vars)
 
-	return vars
+	return &vars
 }
 
 func initMath(vars *jet.VarMap) {

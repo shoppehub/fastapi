@@ -143,7 +143,7 @@ func (instance *Resource) Find(filter bson.M, opts FindOptions) *commons.PagingR
 //			{{"$group", bson.D{{"_id", "$state"}, {"totalPop", bson.D{{"$sum", "$pop"}}}}}},
 //			{{"$match", bson.D{{"totalPop", bson.D{{"$gte", 10*1000*1000}}}}}},
 //		}
-func (instance *Resource) Query(pipeline mongo.Pipeline, opts FindOptions) *commons.PagingResponse {
+func (instance *Resource) Query(pipeline []bson.D, opts FindOptions) *commons.PagingResponse {
 
 	tableName := getTableName(opts.FindOneOptions)
 	var response commons.PagingResponse
@@ -218,7 +218,7 @@ func (instance *Resource) Query(pipeline mongo.Pipeline, opts FindOptions) *comm
 	return &response
 }
 
-func (instance *Resource) QueryWithoutPaging(pipeline mongo.Pipeline, opts FindOptions) ([]bson.M, error) {
+func (instance *Resource) QueryWithoutPaging(pipeline []bson.D, opts FindOptions) ([]bson.M, error) {
 
 	tableName := getTableName(opts.FindOneOptions)
 

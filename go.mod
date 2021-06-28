@@ -8,7 +8,6 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.2
-	github.com/google/uuid v1.2.0 // indirect
 	github.com/iancoleman/strcase v0.1.3
 	github.com/keepeye/logrus-filename v0.0.0-20190711075016-ce01a4391dd1
 	github.com/klauspost/compress v1.12.2 // indirect
@@ -17,7 +16,7 @@ require (
 	github.com/pelletier/go-toml v1.9.1 // indirect
 	github.com/shoppehub/commons v1.0.2
 	github.com/shoppehub/conf v1.0.1
-	github.com/shoppehub/sjet v1.0.6 // indirect
+	github.com/shoppehub/sjet v1.0.8
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect

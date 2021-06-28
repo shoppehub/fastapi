@@ -210,8 +210,8 @@ func Func(resource *crud.Resource, c *gin.Context) {
 	if jsonData != nil {
 		json.Unmarshal(jsonData, &body)
 	}
-
-	result, err := template.Render(resource, *dbCollection, query.Func, body)
+	template.InitEngine()
+	result, err := template.Render(resource, *dbCollection, query.Func, body, c)
 
 	if err != nil {
 		c.JSON(http.StatusOK, commons.ActionResponse{

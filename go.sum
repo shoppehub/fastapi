@@ -252,6 +252,8 @@ github.com/shoppehub/commons v1.0.2 h1:SXJ5W3LUQayGDpYnqjS8O01trCnanWB7VfamMuj8J
 github.com/shoppehub/commons v1.0.2/go.mod h1:lt78LupLol44+7xlIHTNwOOF8qcXER3pA1sL1iP+PqU=
 github.com/shoppehub/conf v1.0.1 h1:OwnRnYOAkyLuUUZpQcN1UhmnEa1GZYDasWeJR8mAy70=
 github.com/shoppehub/conf v1.0.1/go.mod h1:0q56zPGa6XpLYUd0292RbJhKwedGT+yfeuRMAyouWCk=
+github.com/shoppehub/sjet v1.0.6 h1:ZxVkA3GRiWMXMahBhA4ae3d1IfEG/xXXuVsO63KAPvQ=
+github.com/shoppehub/sjet v1.0.6/go.mod h1:2Gq1hjV8PR/w/uz6rznv3eqRJLSEY/ZOho8lp5vtFLI=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=
@@ -309,6 +311,8 @@ github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a/go.mod h1:ul22v+Nro/
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.mongodb.org/mongo-driver v1.5.2 h1:AsxOLoJTgP6YNM0fXWw4OjdluYmWzQYp+lFJL7xu9fU=
 go.mongodb.org/mongo-driver v1.5.2/go.mod h1:gRXCHX4Jo7J0IJ1oDQyUxF7jfy19UfxniMS4xxMmUqw=
+go.mongodb.org/mongo-driver v1.5.3 h1:wWbFB6zaGHpzguF3f7tW94sVE8sFl3lHx8OZx/4OuFI=
+go.mongodb.org/mongo-driver v1.5.3/go.mod h1:gRXCHX4Jo7J0IJ1oDQyUxF7jfy19UfxniMS4xxMmUqw=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=

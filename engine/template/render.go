@@ -13,7 +13,6 @@ import (
 	"github.com/shoppehub/sjet/engine"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var ENGINE *engine.TemplateEngine
@@ -132,10 +131,10 @@ func queryFunc(resource *crud.Resource) jet.Func {
 			}
 		}
 		if findOption.CurPage == 0 && findOption.PageSize == 0 {
-			r, _ := resource.QueryWithoutPaging(a.Get(0).Interface().(mongo.Pipeline), findOption)
+			r, _ := resource.QueryWithoutPaging(a.Get(0).Interface().([]bson.D), findOption)
 			return reflect.ValueOf(r)
 		} else {
-			r := resource.Query(a.Get(0).Interface().(mongo.Pipeline), findOption)
+			r := resource.Query(a.Get(0).Interface().([]bson.D), findOption)
 			return reflect.ValueOf(r)
 		}
 	}

@@ -1,7 +1,6 @@
 package template
 
 import (
-	"bytes"
 	"reflect"
 
 	"github.com/CloudyKit/jet/v6"
@@ -17,50 +16,28 @@ import (
 
 var ENGINE *engine.TemplateEngine
 
-func InitEngine() {
+func InitEngine(resource *crud.Resource) {
 	if ENGINE == nil {
 		ENGINE = sjet.CreateWithMem()
+		InitAPIFunc(resource)
 	}
 }
 
 // 根据名称进行匹配
-func Render(resource *crud.Resource, collection collection.Collection, fnName string, body map[string]interface{}, c *gin.Context) (map[string]interface{}, error) {
+func Render(collection collection.Collection, fnName string, c *gin.Context) (map[string]interface{}, error) {
 
 	fun := collection.Functions[fnName]
 
-	loader := *ENGINE.Loader
-	if !loader.Exists(fnName) {
-		loader.Set(fnName, fun.Template)
-		// loader.templates["/"+fnName] = fun.Template
-	}
+	templateContext := context.InitTemplateContext(ENGINE, c)
 
-	view, err := ENGINE.Views.GetTemplate(fnName)
-	// view, err := views.Parse(fnName, fun.Template)
+	_, err := sjet.RenderMemTemplate(ENGINE, templateContext, c, fnName, fun.Template)
+
 	if err != nil {
 		logrus.Error(err)
 		return nil, err
 	}
-	var resp bytes.Buffer
-	result := make(map[string]interface{})
 
-	templateContext := context.InitTemplateContext(ENGINE, c)
-
-	InitAPIFunc(resource)
-
-	if fun.Params != nil {
-		for _, param := range fun.Params {
-			if body[param.Name] != nil {
-				templateContext.Vars.Set(param.Name, body[param.Name])
-			}
-		}
-	}
-
-	if err = view.Execute(&resp, *templateContext.Vars, nil); err != nil {
-		logrus.Error(err)
-		return nil, err
-	}
-
-	return result, nil
+	return *templateContext.Context, nil
 }
 
 func InitAPIFunc(resource *crud.Resource) {

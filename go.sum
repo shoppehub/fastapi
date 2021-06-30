@@ -250,8 +250,8 @@ github.com/shoppehub/commons v1.0.2 h1:SXJ5W3LUQayGDpYnqjS8O01trCnanWB7VfamMuj8J
 github.com/shoppehub/commons v1.0.2/go.mod h1:lt78LupLol44+7xlIHTNwOOF8qcXER3pA1sL1iP+PqU=
 github.com/shoppehub/conf v1.0.1 h1:OwnRnYOAkyLuUUZpQcN1UhmnEa1GZYDasWeJR8mAy70=
 github.com/shoppehub/conf v1.0.1/go.mod h1:0q56zPGa6XpLYUd0292RbJhKwedGT+yfeuRMAyouWCk=
-github.com/shoppehub/sjet v1.0.8 h1:nzeFP89YKM6RRJ4Ipea+kPAcYR88AczqXEwNBhZwFOw=
-github.com/shoppehub/sjet v1.0.8/go.mod h1:2Gq1hjV8PR/w/uz6rznv3eqRJLSEY/ZOho8lp5vtFLI=
+github.com/shoppehub/sjet v1.0.9 h1:t/fD8G4jJCdxwYRAc1PTdrt+qnSBHhIXrjKrUhJ4XF0=
+github.com/shoppehub/sjet v1.0.9/go.mod h1:2Gq1hjV8PR/w/uz6rznv3eqRJLSEY/ZOho8lp5vtFLI=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=

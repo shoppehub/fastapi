@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"net/http"
@@ -204,14 +203,14 @@ func Func(resource *crud.Resource, c *gin.Context) {
 		return
 	}
 
-	body := make(map[string]interface{})
+	// body := make(map[string]interface{})
 
-	jsonData, _ := c.GetRawData()
-	if jsonData != nil {
-		json.Unmarshal(jsonData, &body)
-	}
-	template.InitEngine()
-	result, err := template.Render(resource, *dbCollection, query.Func, body, c)
+	// jsonData, _ := c.GetRawData()
+	// if jsonData != nil {
+	// 	json.Unmarshal(jsonData, &body)
+	// }
+	template.InitEngine(resource)
+	result, err := template.Render(*dbCollection, query.Func, c)
 
 	if err != nil {
 		c.JSON(http.StatusOK, commons.ActionResponse{

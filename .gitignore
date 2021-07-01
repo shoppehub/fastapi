@@ -21,3 +21,5 @@ node_modules
 dist
 
 .vscode
+
+__debug_bin

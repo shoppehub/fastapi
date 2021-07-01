@@ -54,6 +54,9 @@ func InitAPIFunc(resource *crud.Resource) {
 	sjet.RegCustomFunc("sort", func(c *gin.Context) jet.Func {
 		return sortFunc()
 	})
+	sjet.RegCustomFunc("getCollectionFields", func(c *gin.Context) jet.Func {
+		return getCollectionFieldsFunc(resource)
+	})
 }
 
 func findOptionFunc(resource *crud.Resource) jet.Func {
@@ -126,5 +129,16 @@ func saveFunc(resource *crud.Resource) jet.Func {
 			CollectionName: &collectionName,
 		})
 		return reflect.ValueOf(result)
+	}
+}
+
+func getCollectionFieldsFunc(resource *crud.Resource) jet.Func {
+
+	return func(a jet.Arguments) reflect.Value {
+		collectionName := a.Get(0).Interface().(string)
+
+		fieldMap := collection.FindOneCollection(resource, collectionName)
+
+		return reflect.ValueOf(fieldMap)
 	}
 }

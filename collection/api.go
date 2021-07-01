@@ -69,10 +69,7 @@ func GetCollection(dBResource *crud.Resource, c *gin.Context) {
 }
 
 // 查看集合
-func FindOneCollection(dBResource *crud.Resource, c *gin.Context) {
-
-	name := c.Query("name")
-
+func FindOneCollection(dBResource *crud.Resource, name string) *map[string]CollectionField {
 	var dbCollection Collection
 
 	filter := bson.M{
@@ -81,37 +78,34 @@ func FindOneCollection(dBResource *crud.Resource, c *gin.Context) {
 
 	dBResource.FindOne(filter, &dbCollection, crud.FindOneOptions{})
 
-	var eachField func(fieldMap *map[string]interface{}, fields *[]CollectionField)
+	var eachField func(fieldMap *map[string]CollectionField, fields *[]CollectionField)
 
-	eachField = func(fieldMap *map[string]interface{}, fields *[]CollectionField) {
+	eachField = func(fieldMap *map[string]CollectionField, fields *[]CollectionField) {
 		m := *fieldMap
 		for _, field := range *fields {
 
 			name := field.Name
 
 			var fi CollectionField
-			m[name] = &fi
 
 			fi.Type = field.Type
 			fi.DefaultValue = field.DefaultValue
 			fi.SelectOptions = field.SelectOptions
 
 			if len(field.Fields) > 0 {
-				childFieldMap := make(map[string]interface{})
+				childFieldMap := make(map[string]CollectionField)
 				eachField(&childFieldMap, &field.Fields)
 				fi.Children = childFieldMap
 			}
+			m[name] = fi
 		}
 	}
 	fields := dbCollection.Fields
 
-	fieldMap := make(map[string]interface{})
+	fieldMap := make(map[string]CollectionField)
 	eachField(&fieldMap, &fields)
 
-	c.JSON(http.StatusOK, commons.ActionResponse{
-		Success: true,
-		Data:    fieldMap,
-	})
+	return &fieldMap
 }
 
 // 获取集合

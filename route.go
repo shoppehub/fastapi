@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shoppehub/commons"
 	"github.com/shoppehub/fastapi/collection"
 	"github.com/shoppehub/fastapi/crud"
 	"github.com/shoppehub/fastapi/engine"
@@ -40,7 +41,14 @@ func InitApi(resource *crud.Resource, r *gin.Engine) {
 			collection.GetCollection(resource, c)
 		})
 		apiv1.GET("/findcollection", func(c *gin.Context) {
-			collection.FindOneCollection(resource, c)
+
+			name := c.Query("name")
+			fieldMap := collection.FindOneCollection(resource, name)
+
+			c.JSON(http.StatusOK, commons.ActionResponse{
+				Success: true,
+				Data:    fieldMap,
+			})
 		})
 		apiv1.POST("/collections", func(c *gin.Context) {
 			collection.QueryCollection(resource, c)

@@ -46,7 +46,10 @@ func (instance *Resource) FindOne(filter bson.M, result interface{}, opts FindOn
 	if filter == nil || len(filter) == 0 {
 		return
 	}
-
+	if opts.CollectionName == nil {
+		collectionName := reflect.TypeOf(result).Elem().Name()
+		opts.CollectionName = &collectionName
+	}
 	tableName := getTableName(opts)
 	findOptions := options.FindOne()
 	var sort bson.D

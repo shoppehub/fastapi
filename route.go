@@ -39,6 +39,9 @@ func InitApi(resource *crud.Resource, r *gin.Engine) {
 		apiv1.GET("/collection/:id", func(c *gin.Context) {
 			collection.GetCollection(resource, c)
 		})
+		apiv1.GET("/findcollection", func(c *gin.Context) {
+			collection.FindOneCollection(resource, c)
+		})
 		apiv1.POST("/collections", func(c *gin.Context) {
 			collection.QueryCollection(resource, c)
 		})

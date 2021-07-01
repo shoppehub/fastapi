@@ -68,6 +68,52 @@ func GetCollection(dBResource *crud.Resource, c *gin.Context) {
 	})
 }
 
+// 查看集合
+func FindOneCollection(dBResource *crud.Resource, c *gin.Context) {
+
+	name := c.Query("name")
+
+	var dbCollection Collection
+
+	filter := bson.M{
+		"name": name,
+	}
+
+	dBResource.FindOne(filter, &dbCollection, crud.FindOneOptions{})
+
+	var eachField func(fieldMap *map[string]interface{}, fields *[]CollectionField)
+
+	eachField = func(fieldMap *map[string]interface{}, fields *[]CollectionField) {
+		m := *fieldMap
+		for _, field := range *fields {
+
+			name := field.Name
+
+			var fi CollectionField
+			m[name] = &fi
+
+			fi.Type = field.Type
+			fi.DefaultValue = field.DefaultValue
+			fi.SelectOptions = field.SelectOptions
+
+			if len(field.Fields) > 0 {
+				childFieldMap := make(map[string]interface{})
+				eachField(&childFieldMap, &field.Fields)
+				fi.Children = childFieldMap
+			}
+		}
+	}
+	fields := dbCollection.Fields
+
+	fieldMap := make(map[string]interface{})
+	eachField(&fieldMap, &fields)
+
+	c.JSON(http.StatusOK, commons.ActionResponse{
+		Success: true,
+		Data:    fieldMap,
+	})
+}
+
 // 获取集合
 func QueryCollection(dBResource *crud.Resource, c *gin.Context) {
 

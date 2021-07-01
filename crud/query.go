@@ -27,6 +27,9 @@ func (instance *Resource) FindOneWithBson(filterJSON string, result interface{},
 }
 
 func getTableName(opts FindOneOptions) string {
+	if opts.CollectionName == nil {
+		return ""
+	}
 	return strcase.ToSnake(*opts.CollectionName)
 }
 

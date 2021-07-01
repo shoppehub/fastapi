@@ -30,9 +30,9 @@ type Developer struct {
 // 集合字段类型
 type CollectionField struct {
 	// 字段名称
-	Name string `bson:"name" json:"name"`
+	Name string `bson:"name" json:"name,omitempty"`
 	// 字段中文名称
-	Title string `bson:"title" json:"title"`
+	Title string `bson:"title" json:"title,omitempty"`
 	// 字段类型
 	Type string `bson:"type" json:"type"`
 	// 字段描述
@@ -43,6 +43,8 @@ type CollectionField struct {
 	SetOnInsert bool `bson:"setOnInsert,omitempty" json:"setOnInsert,omitempty"`
 	// 如果是内置对象模型，具体的字段是定义
 	Fields []CollectionField `bson:"fields,omitempty" json:"fields,omitempty"`
+
+	Children map[string]interface{} `bson:"_" json:"children,omitempty"`
 
 	SelectOptions []SelectOptions `bson:"selectOptions,omitempty" json:"selectOptions,omitempty"`
 	// 值

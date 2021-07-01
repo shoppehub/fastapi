@@ -78,13 +78,18 @@ func FindOneCollection(dBResource *crud.Resource, name string) *map[string]Colle
 
 	dBResource.FindOne(filter, &dbCollection, crud.FindOneOptions{})
 
-	var eachField func(fieldMap *map[string]CollectionField, fields *[]CollectionField)
+	fieldMap := make(map[string]CollectionField)
 
-	eachField = func(fieldMap *map[string]CollectionField, fields *[]CollectionField) {
-		m := *fieldMap
+	var eachField func(prefix string, fields *[]CollectionField)
+
+	eachField = func(prefix string, fields *[]CollectionField) {
 		for _, field := range *fields {
 
 			name := field.Name
+
+			if prefix != "" {
+				name += "." + field.Name
+			}
 
 			var fi CollectionField
 
@@ -93,17 +98,14 @@ func FindOneCollection(dBResource *crud.Resource, name string) *map[string]Colle
 			fi.SelectOptions = field.SelectOptions
 
 			if len(field.Fields) > 0 {
-				childFieldMap := make(map[string]CollectionField)
-				eachField(&childFieldMap, &field.Fields)
-				fi.Children = childFieldMap
+
+				eachField(name, &field.Fields)
 			}
-			m[name] = fi
+			fieldMap[name] = fi
 		}
 	}
 	fields := dbCollection.Fields
-
-	fieldMap := make(map[string]CollectionField)
-	eachField(&fieldMap, &fields)
+	eachField("", &fields)
 
 	return &fieldMap
 }

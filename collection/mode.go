@@ -44,8 +44,6 @@ type CollectionField struct {
 	// 如果是内置对象模型，具体的字段是定义
 	Fields []CollectionField `bson:"fields,omitempty" json:"fields,omitempty"`
 
-	Children map[string]CollectionField `bson:"_" json:"children,omitempty"`
-
 	SelectOptions []SelectOptions `bson:"selectOptions,omitempty" json:"selectOptions,omitempty"`
 	// 值
 	Value interface{} `bson:"value,omitempty" json:"value,omitempty"`

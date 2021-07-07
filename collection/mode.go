@@ -58,8 +58,11 @@ type CollectionField struct {
 }
 
 type SelectOptions struct {
-	Label string `bson:"label" json:"label"`
-	Value string `bson:"value" json:"value"`
+	Label            string                 `bson:"label" json:"label"`
+	Value            string                 `bson:"value" json:"value"`
+	Selected         bool                   `bson:"selected" json:"selected"`
+	Disabled         bool                   `bson:"disabled" json:"disabled"`
+	CustomProperties map[string]interface{} `bson:"customProperties" json:"customProperties"`
 }
 
 // 开发者

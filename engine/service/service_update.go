@@ -29,11 +29,18 @@ func Save(resource *crud.Resource, collection collection.Collection, body Collec
 				return nil, err
 			}
 			body.Filter[base.ID] = oid
+			resource.FindOne(body.Filter, &dbResult, crud.FindOneOptions{
+				CollectionName: collectionName,
+			})
+		} else {
+			filterBytes, _ := json.Marshal(body.Filter)
+			var filter primitive.M
+			bson.UnmarshalExtJSON(filterBytes, true, &filter)
+			resource.FindOne(filter, &dbResult, crud.FindOneOptions{
+				CollectionName: collectionName,
+			})
 		}
 
-		resource.FindOne(body.Filter, &dbResult, crud.FindOneOptions{
-			CollectionName: collectionName,
-		})
 		if dbResult != nil {
 			body.Body[base.ID] = dbResult[base.ID]
 			hasDbResult = true

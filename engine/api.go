@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"fmt"
+	"encoding/json"
 
 	"net/http"
 
@@ -11,6 +11,7 @@ import (
 	"github.com/shoppehub/fastapi/engine/service"
 	"github.com/shoppehub/fastapi/engine/template"
 	"github.com/shoppehub/fastapi/engine/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -56,8 +57,12 @@ func FindOne(resource *crud.Resource, c *gin.Context) {
 		return
 	}
 	result := make(map[string]interface{})
-	fmt.Println(body)
-	resource.FindOne(body.Filter, result,
+
+	filterBytes, _ := json.Marshal(body.Filter)
+	var filter primitive.M
+	bson.UnmarshalExtJSON(filterBytes, true, &filter)
+
+	resource.FindOne(filter, result,
 		crud.FindOneOptions{
 			CollectionName: dbCollection.GetCollectionName(),
 			Sort:           body.Sort,

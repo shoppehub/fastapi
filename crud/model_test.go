@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func TestS(t *testing.T) {
@@ -58,4 +60,11 @@ func TestMode(t *testing.T) {
 
 	fmt.Print(d)
 
+	oid, _ := primitive.ObjectIDFromHex("60e5661075cd18c89c0791b5")
+	m := primitive.M{
+		"id": oid,
+	}
+
+	rs, err := json.Marshal(&m)
+	fmt.Println(string(rs), err)
 }

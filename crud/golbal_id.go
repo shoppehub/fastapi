@@ -2,7 +2,6 @@ package crud
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -34,12 +33,8 @@ func GenerateId(resource *Resource, key string, initVal int64) int64 {
 		Upsert:         &upsert,
 	}
 
-	fmt.Println(update)
-
 	var val bson.M
 	resource.DB.Collection("golbal_id").FindOneAndUpdate(context.Background(), filter, update, &opt).Decode(&val)
-
-	fmt.Println(val)
 
 	return initVal + (val["value"].(int64))
 }

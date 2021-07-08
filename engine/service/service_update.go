@@ -95,7 +95,10 @@ func Save(resource *crud.Resource, collection collection.Collection, body Collec
 	update := bson.D{
 		{"$set", setElements},
 		{"$setOnInsert", setOnInsertElements},
-		{"$unset", unsetElements},
+	}
+
+	if len(unsetElements) > 0 {
+		update = append(update, bson.E{"$unset", unsetElements})
 	}
 
 	one, err := resource.DB.Collection(*collectionName).UpdateOne(

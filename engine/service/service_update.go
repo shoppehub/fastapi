@@ -56,6 +56,7 @@ func Save(resource *crud.Resource, collection collection.Collection, body Collec
 
 	setElements := bson.D{}
 	setOnInsertElements := bson.D{}
+	unsetElements := bson.D{}
 	now := time.Now()
 	for _, field := range collection.Fields {
 		value := body.Body[field.Name]
@@ -64,6 +65,11 @@ func Save(resource *crud.Resource, collection collection.Collection, body Collec
 			fmt.Println(field)
 			value = crud.GenerateId(resource, field.IdKey, field.IdInitVal)
 			setOnInsertElements = append(setOnInsertElements, bson.E{field.Name, value})
+			continue
+		}
+
+		if value == "null" {
+			unsetElements = append(unsetElements, bson.E{field.Name, ""})
 			continue
 		}
 
@@ -89,6 +95,7 @@ func Save(resource *crud.Resource, collection collection.Collection, body Collec
 	update := bson.D{
 		{"$set", setElements},
 		{"$setOnInsert", setOnInsertElements},
+		{"$unset", unsetElements},
 	}
 
 	one, err := resource.DB.Collection(*collectionName).UpdateOne(

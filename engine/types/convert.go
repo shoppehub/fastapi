@@ -134,6 +134,11 @@ func handerMap(resource *crud.Resource, value interface{}, field collection.Coll
 }
 
 func handerString(value interface{}, field collection.CollectionField) (interface{}, error) {
+
+	if value == "null" {
+		return value, nil
+	}
+
 	switch field.Type {
 	case "objectId":
 		{

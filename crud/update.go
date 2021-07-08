@@ -37,8 +37,8 @@ type Inc struct {
 type updateField struct {
 	setElements         bson.D
 	setOnInsertElements bson.D
-
-	fieldMap map[string]interface{}
+	unsetElements       bson.D
+	fieldMap            map[string]interface{}
 }
 
 // 修改一个数据
@@ -156,6 +156,7 @@ func (updateField *updateField) wrapField(field reflect.StructField, value refle
 	if name == "" {
 		return
 	}
+
 	var val interface{}
 	// 说明是嵌套字段，需要继续遍历属性
 	if field.Type.Kind() == reflect.Struct && field.Type.String() != "time.Time" {
@@ -170,11 +171,18 @@ func (updateField *updateField) wrapField(field reflect.StructField, value refle
 	if val == nil {
 		return
 	}
+
 	if parent == nil {
 		if updateField.fieldMap[name] != nil {
 			return
 		}
 		updateField.fieldMap[name] = val
+
+		if reflect.ValueOf(val).Kind() == reflect.String && val.(string) == "null" {
+			updateField.unsetElements = append(updateField.unsetElements, bson.E{name, ""})
+			return
+		}
+
 		tag := field.Tag.Get("update")
 		if tag == "setOnInsert" {
 			updateField.setOnInsertElements = append(updateField.setOnInsertElements, bson.E{name, val})

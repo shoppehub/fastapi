@@ -193,6 +193,11 @@ func handerString(value interface{}, field collection.CollectionField) (interfac
 			if strings.IndexAny(str, ":") == -1 {
 				layout = "2006-01-02"
 			}
+
+			if strings.Contains(str, "T") {
+				layout = time.RFC3339
+			}
+
 			val, err := time.Parse(layout, str)
 			if err != nil {
 				ejson, _ := json.Marshal(field)

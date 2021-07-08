@@ -44,6 +44,9 @@ func InitAPIFunc(resource *crud.Resource) {
 	sjet.RegCustomFunc("query", func(c *gin.Context) jet.Func {
 		return queryFunc(resource)
 	})
+	sjet.RegCustomFunc("findOne", func(c *gin.Context) jet.Func {
+		return findOneFunc(resource)
+	})
 	sjet.RegCustomFunc("findOption", func(c *gin.Context) jet.Func {
 		return findOptionFunc(resource)
 	})
@@ -117,6 +120,23 @@ func queryFunc(resource *crud.Resource) jet.Func {
 			r := resource.Query(a.Get(0).Interface().([]bson.D), findOption)
 			return reflect.ValueOf(r)
 		}
+	}
+}
+
+func findOneFunc(resource *crud.Resource) jet.Func {
+
+	return func(a jet.Arguments) reflect.Value {
+
+		filter := a.Get(0).Interface().(bson.M)
+
+		findOption := a.Get(1).Interface().(crud.FindOptions)
+
+		var result map[string]interface{}
+
+		resource.FindOne(filter, &result, crud.FindOneOptions{
+			CollectionName: findOption.CollectionName,
+		})
+		return reflect.ValueOf(result)
 	}
 }
 

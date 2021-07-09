@@ -80,3 +80,15 @@ func (collection *Collection) GetCollectionName() *string {
 	collectionName := strings.ReplaceAll(collection.Name, "/", "_")
 	return &collectionName
 }
+
+func (field *CollectionField) GetSelectOption(value string) string {
+	if field.SelectOptions == nil {
+		return ""
+	}
+	for _, v := range field.SelectOptions {
+		if v.Value == value {
+			return v.Label
+		}
+	}
+	return ""
+}

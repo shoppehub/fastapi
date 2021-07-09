@@ -69,7 +69,7 @@ func GetCollection(dBResource *crud.Resource, c *gin.Context) {
 }
 
 // 查看集合
-func FindOneCollection(dBResource *crud.Resource, name string) *map[string]CollectionField {
+func FindOneCollection(dBResource *crud.Resource, name string) *map[string]*CollectionField {
 	var dbCollection Collection
 
 	filter := bson.M{
@@ -78,7 +78,7 @@ func FindOneCollection(dBResource *crud.Resource, name string) *map[string]Colle
 
 	dBResource.FindOne(filter, &dbCollection, crud.FindOneOptions{})
 
-	fieldMap := make(map[string]CollectionField)
+	fieldMap := make(map[string]*CollectionField)
 
 	var eachField func(prefix string, fields *[]CollectionField)
 
@@ -99,7 +99,7 @@ func FindOneCollection(dBResource *crud.Resource, name string) *map[string]Colle
 			if len(field.Fields) > 0 {
 				eachField(name, &field.Fields)
 			}
-			fieldMap[name] = fi
+			fieldMap[name] = &fi
 		}
 	}
 	fields := dbCollection.Fields

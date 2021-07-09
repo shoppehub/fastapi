@@ -13,11 +13,7 @@ import (
 
 func InitApi(resource *crud.Resource, r *gin.Engine) {
 
-	session.Init()
-
-	r.Use(func(c *gin.Context) {
-		session.WrapUserSession(resource, c.Request)
-	})
+	session.Init(resource, r)
 
 	apiv1 := r.Group("/api/v1")
 	{

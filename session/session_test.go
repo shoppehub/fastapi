@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"testing"
+	"time"
 )
 
 func TestSession(t *testing.T) {
@@ -18,4 +19,5 @@ func TestSession(t *testing.T) {
 	// 	NewSession()
 	// }
 
+	fmt.Println(time.Unix(1, 0))
 }

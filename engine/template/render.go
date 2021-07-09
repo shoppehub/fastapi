@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shoppehub/fastapi/collection"
 	"github.com/shoppehub/fastapi/crud"
+	"github.com/shoppehub/fastapi/session"
 	"github.com/shoppehub/sjet"
 	"github.com/shoppehub/sjet/context"
 	"github.com/shoppehub/sjet/engine"
@@ -59,6 +60,14 @@ func InitAPIFunc(resource *crud.Resource) {
 	})
 	sjet.RegCustomFunc("getCollectionFields", func(c *gin.Context) jet.Func {
 		return getCollectionFieldsFunc(resource)
+	})
+
+	sjet.RegCustomFunc("login", func(c *gin.Context) jet.Func {
+		return loginFunc(resource, c)
+	})
+
+	sjet.RegCustomFunc("logout", func(c *gin.Context) jet.Func {
+		return logoutFunc(resource, c)
 	})
 }
 
@@ -160,5 +169,24 @@ func getCollectionFieldsFunc(resource *crud.Resource) jet.Func {
 		fieldMap := collection.FindOneCollection(resource, collectionName)
 
 		return reflect.ValueOf(fieldMap)
+	}
+}
+
+func loginFunc(resource *crud.Resource, c *gin.Context) jet.Func {
+
+	return func(a jet.Arguments) reflect.Value {
+		uid := a.Get(0).Interface().(string)
+
+		session.NewUserSession(resource, uid, c.Request, c.Writer)
+
+		return reflect.ValueOf("")
+	}
+}
+
+func logoutFunc(resource *crud.Resource, c *gin.Context) jet.Func {
+
+	return func(a jet.Arguments) reflect.Value {
+		session.RemoveUserSession(resource, c.Request)
+		return reflect.ValueOf("")
 	}
 }

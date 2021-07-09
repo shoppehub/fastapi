@@ -3,9 +3,9 @@ package session
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"time"
 
-	"github.com/shoppehub/conf"
 	"github.com/shoppehub/fastapi/base"
 	"github.com/shoppehub/fastapi/crud"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,49 +15,21 @@ var SidKey = "sid"
 
 var MaxAge int
 
-var collectionName string
+var collectionName = "user_sessions"
 
-func init() {
-	collectionName = "user_sessions"
-}
-
-// 用户session模型
-type UserSession struct {
-	base.BaseId `bson,inline`
-	Uid         *primitive.ObjectID `bson:"uid" json:"uid"`
-	Expires     *time.Time          `bson:"expires,omitempty" json:"expires,omitempty"`
-	Agent       string              `bson:"agent,omitempty" json:"agent,omitempty"`
-	Ip          string              `bson:"ip,omitempty" json:"ip,omitempty"`
-	Status      string              `bson:"status" json:"status"`
-}
-
-func (u *UserSession) GetUid() string {
-	return u.Uid.Hex()
-}
-
-func Init() {
-	sid := conf.GetString("http.sid")
-	if sid != "" {
-		SidKey = sid
-	}
-
-	maxAge := conf.GetInt("http.maxAge")
-	if maxAge != 0 {
-		MaxAge = int(maxAge)
-	}
-}
+var defaultExpires = time.Unix(1, 0)
 
 // 获取 session
-func GetUserSession(r *http.Request) *UserSession {
+func GetUserId(r *http.Request) string {
 	var ctx = r.Context()
 	val := ctx.Value(SidKey)
 	if val == nil {
-		return nil
+		return ""
 	}
-	return val.(*UserSession)
+	return val.(*UserSession).Uid
 }
 
-func WrapUserSession(resource *crud.Resource, r *http.Request) {
+func wrapUserSession(resource *crud.Resource, r *http.Request) {
 
 	var sid = getCookieSid(r)
 	if sid == "" {
@@ -65,12 +37,15 @@ func WrapUserSession(resource *crud.Resource, r *http.Request) {
 	}
 	var session UserSession
 	resource.FindById(sid, &session, crud.FindOneOptions{CollectionName: &collectionName})
-	if session.Status == "login" && (session.Expires == nil || session.Expires.After(time.Now())) {
-		SetUserSession(r, &session)
+	if session.Status == "login" && (session.Expires.After(time.Now())) {
+
+		setUserSession(r, &UserSession{
+			Uid: session.Uid,
+		})
 	}
 }
 
-func SetUserSession(r *http.Request, session *UserSession) {
+func setUserSession(r *http.Request, session *UserSession) {
 	var ctx = r.Context()
 	*r = *r.WithContext(context.WithValue(ctx, SidKey, session))
 }
@@ -85,22 +60,24 @@ func getCookieSid(r *http.Request) string {
 
 func NewUserSession(resource *crud.Resource, uid string, r *http.Request, w http.ResponseWriter) string {
 
-	cookie := SaveSessionId(r, w)
+	cookie := saveSessionId(r, w)
 	oid, _ := primitive.ObjectIDFromHex(cookie.Value)
-	ouid, _ := primitive.ObjectIDFromHex(uid)
 
 	session := UserSession{
 		BaseId: base.BaseId{
 			Id: &oid,
 		},
-		Uid:    &ouid,
-		Agent:  r.UserAgent(),
-		Ip:     GetIP(r),
-		Status: "login",
+		Uid:     uid,
+		Agent:   r.UserAgent(),
+		Expires: &cookie.Expires,
+		Ip:      GetIP(r),
+		Status:  "login",
 	}
 
-	if cookie.Expires.Second() != 0 {
-		session.Expires = &cookie.Expires
+	if cookie.Expires.String() == defaultExpires.String() {
+		d := time.Duration(24) * time.Hour
+		expires := time.Now().Add(d)
+		session.Expires = &expires
 	}
 
 	resource.SaveOrUpdateOne(session, &crud.UpdateOption{
@@ -110,18 +87,15 @@ func NewUserSession(resource *crud.Resource, uid string, r *http.Request, w http
 	return cookie.Value
 }
 
-func SaveSessionId(r *http.Request, w http.ResponseWriter) *http.Cookie {
+func saveSessionId(r *http.Request, w http.ResponseWriter) *http.Cookie {
 
 	domain := GetDomain(r.Host)
 
-	uid := getCookieSid(r)
-	if uid == "" {
-		uid = primitive.NewObjectID().Hex()
-	}
+	sid := primitive.NewObjectID().Hex()
 
 	cookie := http.Cookie{
 		Name:     SidKey,
-		Value:    uid,
+		Value:    sid,
 		Path:     "/",
 		Domain:   domain,
 		HttpOnly: true,
@@ -132,22 +106,30 @@ func SaveSessionId(r *http.Request, w http.ResponseWriter) *http.Cookie {
 		cookie.SameSite = http.SameSiteNoneMode
 	}
 
-	newCookie(&cookie)
+	sessionMaxAgeStr := r.URL.Query().Get("sessionMaxAge")
+	sessionMaxAge := int64(0)
 
+	if sessionMaxAgeStr != "" {
+		sessionMaxAge, _ = strconv.ParseInt(sessionMaxAgeStr, 10, 64)
+	}
+	newCookie(sessionMaxAge, &cookie)
 	http.SetCookie(w, &cookie)
 	return &cookie
 }
 
-func newCookie(cookie *http.Cookie) {
-	if MaxAge > 0 {
+func newCookie(sessionMaxAge int64, cookie *http.Cookie) {
+	if sessionMaxAge > 0 {
+		d := time.Duration(sessionMaxAge) * time.Second
+		cookie.Expires = time.Now().Add(d)
+	} else if MaxAge > 0 {
 		d := time.Duration(MaxAge) * time.Second
 		cookie.Expires = time.Now().Add(d)
-	} else if MaxAge < 0 {
-		// Set it to the past to expire now.
-		cookie.Expires = time.Unix(1, 0)
+	} else {
+		cookie.Expires = defaultExpires
 	}
 }
 
+// 退出登录
 func RemoveUserSession(resource *crud.Resource, r *http.Request) {
 	var sid = getCookieSid(r)
 	if sid == "" {
@@ -156,11 +138,8 @@ func RemoveUserSession(resource *crud.Resource, r *http.Request) {
 	var session UserSession
 	resource.FindById(sid, &session, crud.FindOneOptions{CollectionName: &collectionName})
 
-	if session.Uid != nil {
-		session.Status = "logout"
-		resource.SaveOrUpdateOne(session, &crud.UpdateOption{
-			CollectionName: &collectionName,
-		})
-	}
-
+	session.Status = "logout"
+	resource.SaveOrUpdateOne(session, &crud.UpdateOption{
+		CollectionName: &collectionName,
+	})
 }

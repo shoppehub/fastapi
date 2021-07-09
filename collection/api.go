@@ -96,9 +96,7 @@ func FindOneCollection(dBResource *crud.Resource, name string) *map[string]Colle
 			fi.Type = field.Type
 			fi.DefaultValue = field.DefaultValue
 			fi.SelectOptions = field.SelectOptions
-
 			if len(field.Fields) > 0 {
-
 				eachField(name, &field.Fields)
 			}
 			fieldMap[name] = fi

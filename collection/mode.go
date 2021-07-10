@@ -81,6 +81,7 @@ func (collection *Collection) GetCollectionName() *string {
 	return &collectionName
 }
 
+// 根据 option的值选择 option 的label
 func (field *CollectionField) GetSelectOption(value string) string {
 	if field.SelectOptions == nil {
 		return ""
@@ -91,4 +92,63 @@ func (field *CollectionField) GetSelectOption(value string) string {
 		}
 	}
 	return ""
+}
+
+// 有些时候，选项是其他并且自定义输入的情况，那么就判断一下显示自定义值
+func (field *CollectionField) GetCustomSelectOption(value string, customValue string) string {
+	if field.SelectOptions == nil {
+		return ""
+	}
+	for _, v := range field.SelectOptions {
+		if v.Value == value {
+			if customValue != "" && value == "custom" {
+				return customValue
+			}
+			return v.Label
+		}
+	}
+	return customValue
+}
+
+// 根据 option的值选择 option 的label，多选场景
+func (field *CollectionField) GetSelectOptions(value []string) []string {
+	if field.SelectOptions == nil {
+		return value
+	}
+
+	cache := make(map[string]string)
+	for _, v := range field.SelectOptions {
+		cache[v.Value] = v.Label
+	}
+	var result []string
+	for _, v := range value {
+		if val, ok := cache[v]; ok {
+			result = append(result, val)
+		}
+	}
+
+	return result
+}
+
+// 有些时候，选项是其他并且自定义输入的情况，那么就判断一下显示自定义值
+func (field *CollectionField) GetCustomSelectOptions(value []string, customValue []string) []string {
+	if field.SelectOptions == nil {
+		return customValue
+	}
+	cache := make(map[string]string)
+	for _, v := range field.SelectOptions {
+		cache[v.Value] = v.Label
+	}
+	var result []string
+	for _, v := range value {
+		if val, ok := cache[v]; ok {
+			result = append(result, val)
+		}
+	}
+	if len(customValue) > 0 {
+		for _, v := range customValue {
+			result = append(result, v)
+		}
+	}
+	return result
 }

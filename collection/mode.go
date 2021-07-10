@@ -131,24 +131,26 @@ func (field *CollectionField) GetSelectOptions(value []string) []string {
 }
 
 // 有些时候，选项是其他并且自定义输入的情况，那么就判断一下显示自定义值
-func (field *CollectionField) GetCustomSelectOptions(value []string, customValue []string) []string {
+func (field *CollectionField) GetCustomSelectOptions(savedValues []string, customValues []string) []string {
 	if field.SelectOptions == nil {
-		return customValue
+		return customValues
 	}
 	cache := make(map[string]string)
 	for _, v := range field.SelectOptions {
 		cache[v.Value] = v.Label
 	}
 	var result []string
-	for _, v := range value {
+	for _, v := range savedValues {
 		if val, ok := cache[v]; ok {
 			result = append(result, val)
+		} else {
+			for _, cv := range customValues {
+				if cv == v {
+					result = append(result, cv)
+				}
+			}
 		}
 	}
-	if len(customValue) > 0 {
-		for _, v := range customValue {
-			result = append(result, v)
-		}
-	}
+
 	return result
 }

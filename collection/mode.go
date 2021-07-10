@@ -1,10 +1,12 @@
 package collection
 
 import (
+	"reflect"
 	"strings"
 
 	"github.com/shoppehub/commons"
 	"github.com/shoppehub/fastapi/base"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // 集合
@@ -111,9 +113,9 @@ func (field *CollectionField) GetCustomSelectOption(value string, customValue st
 }
 
 // 根据 option的值选择 option 的label，多选场景
-func (field *CollectionField) GetSelectOptions(value []string) []string {
+func (field *CollectionField) GetSelectOptions(value interface{}) []string {
 	if field.SelectOptions == nil {
-		return value
+		return nil
 	}
 
 	cache := make(map[string]string)
@@ -121,9 +123,20 @@ func (field *CollectionField) GetSelectOptions(value []string) []string {
 		cache[v.Value] = v.Label
 	}
 	var result []string
-	for _, v := range value {
-		if val, ok := cache[v]; ok {
-			result = append(result, val)
+
+	if reflect.TypeOf(value).String() == "primitive.A" {
+		vas := value.(primitive.A)
+		for _, v := range vas {
+			if val, ok := cache[v.(string)]; ok {
+				result = append(result, val)
+			}
+		}
+	} else {
+		vas := value.([]string)
+		for _, v := range vas {
+			if val, ok := cache[v]; ok {
+				result = append(result, val)
+			}
 		}
 	}
 
@@ -131,23 +144,48 @@ func (field *CollectionField) GetSelectOptions(value []string) []string {
 }
 
 // 有些时候，选项是其他并且自定义输入的情况，那么就判断一下显示自定义值
-func (field *CollectionField) GetCustomSelectOptions(savedValues []string, customValues []string) []string {
+func (field *CollectionField) GetCustomSelectOptions(savedValues interface{}, customValues interface{}) []string {
 	if field.SelectOptions == nil {
-		return customValues
+		return nil
 	}
+
 	cache := make(map[string]string)
 	for _, v := range field.SelectOptions {
 		cache[v.Value] = v.Label
 	}
-	var result []string
-	for _, v := range savedValues {
-		if val, ok := cache[v]; ok {
-			result = append(result, val)
+
+	customStringValues := make(map[string]string)
+	if customValues != nil {
+		if reflect.TypeOf(customValues).String() == "primitive.A" {
+			vas := customValues.(primitive.A)
+			for _, v := range vas {
+				customStringValues[v.(string)] = "1"
+			}
 		} else {
-			for _, cv := range customValues {
-				if cv == v {
-					result = append(result, cv)
-				}
+			vas := customValues.([]string)
+			for _, v := range vas {
+				customStringValues[v] = "1"
+			}
+		}
+	}
+
+	var result []string
+	if reflect.TypeOf(savedValues).String() == "primitive.A" {
+		vas := savedValues.(primitive.A)
+		for _, v := range vas {
+			if val, ok := cache[v.(string)]; ok {
+				result = append(result, val)
+			} else if val, ok := customStringValues[v.(string)]; ok {
+				result = append(result, val)
+			}
+		}
+	} else {
+		vas := savedValues.([]string)
+		for _, v := range vas {
+			if val, ok := cache[v]; ok {
+				result = append(result, val)
+			} else if val, ok := customStringValues[v]; ok {
+				result = append(result, val)
 			}
 		}
 	}

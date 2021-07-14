@@ -18,14 +18,23 @@ var collectionName = "user_sessions"
 
 var defaultExpires = time.Unix(1, 0)
 
-// 获取 session
+// 获取 session 的登录id
 func GetUserId(r *http.Request) string {
+	s := GetUserSession(r)
+	if s != nil {
+		return s.Uid
+	}
+	return ""
+}
+
+// 获取dession
+func GetUserSession(r *http.Request) *UserSession {
 	var ctx = r.Context()
 	val := ctx.Value(SidKey)
 	if val == nil {
-		return ""
+		return &UserSession{}
 	}
-	return val.(*UserSession).Uid
+	return val.(*UserSession)
 }
 
 func wrapUserSession(resource *crud.Resource, r *http.Request) {
@@ -38,9 +47,7 @@ func wrapUserSession(resource *crud.Resource, r *http.Request) {
 	resource.FindById(sid, &session, crud.FindOneOptions{CollectionName: &collectionName})
 	if session.Status == "login" && (session.Expires.After(time.Now())) {
 
-		setUserSession(r, &UserSession{
-			Uid: session.Uid,
-		})
+		setUserSession(r, &session)
 	}
 }
 

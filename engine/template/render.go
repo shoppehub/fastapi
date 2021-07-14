@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shoppehub/fastapi/collection"
 	"github.com/shoppehub/fastapi/crud"
-	"github.com/shoppehub/fastapi/session"
 	"github.com/shoppehub/sjet"
 	"github.com/shoppehub/sjet/context"
 	"github.com/shoppehub/sjet/engine"
@@ -61,14 +60,7 @@ func InitAPIFunc(resource *crud.Resource) {
 	sjet.RegCustomFunc("getCollectionFields", func(c *gin.Context) jet.Func {
 		return getCollectionFieldsFunc(resource)
 	})
-
-	sjet.RegCustomFunc("login", func(c *gin.Context) jet.Func {
-		return loginFunc(resource, c)
-	})
-
-	sjet.RegCustomFunc("logout", func(c *gin.Context) jet.Func {
-		return logoutFunc(resource, c)
-	})
+	initSession(resource)
 }
 
 func findOptionFunc(resource *crud.Resource) jet.Func {
@@ -169,37 +161,5 @@ func getCollectionFieldsFunc(resource *crud.Resource) jet.Func {
 		fieldMap := collection.FindOneCollection(resource, collectionName)
 
 		return reflect.ValueOf(fieldMap)
-	}
-}
-
-func loginFunc(resource *crud.Resource, c *gin.Context) jet.Func {
-
-	return func(a jet.Arguments) reflect.Value {
-		mm := a.Get(0).Interface().(map[string]interface{})
-
-		userSession := session.UserSession{
-			Uid: mm["uid"].(string),
-		}
-		if mm["avatar"] != nil {
-			userSession.Avatar = mm["avatar"].(string)
-		}
-		if mm["nickName"] != nil {
-			userSession.NickName = mm["nickName"].(string)
-		}
-		if mm["maxAge"] != nil {
-			userSession.MaxAge = int64(mm["maxAge"].(int64))
-		}
-
-		s, _ := session.NewUserSession(resource, userSession, c.Request, c.Writer)
-
-		return reflect.ValueOf(s)
-	}
-}
-
-func logoutFunc(resource *crud.Resource, c *gin.Context) jet.Func {
-
-	return func(a jet.Arguments) reflect.Value {
-		session.RemoveUserSession(resource, c.Request)
-		return reflect.ValueOf("")
 	}
 }

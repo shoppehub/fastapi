@@ -57,7 +57,7 @@ func getCookieSid(r *http.Request) string {
 	return sid
 }
 
-func NewUserSession(resource *crud.Resource, userSession UserSession, r *http.Request, w http.ResponseWriter) string {
+func NewUserSession(resource *crud.Resource, userSession UserSession, r *http.Request, w http.ResponseWriter) (*UserSession, string) {
 
 	cookie := saveSessionId(r, w, userSession.MaxAge)
 	oid, _ := primitive.ObjectIDFromHex(cookie.Value)
@@ -85,7 +85,7 @@ func NewUserSession(resource *crud.Resource, userSession UserSession, r *http.Re
 		CollectionName: &collectionName,
 	})
 
-	return cookie.Value
+	return &session, cookie.Value
 }
 
 func saveSessionId(r *http.Request, w http.ResponseWriter, maxAge int64) *http.Cookie {

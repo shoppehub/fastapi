@@ -190,9 +190,9 @@ func loginFunc(resource *crud.Resource, c *gin.Context) jet.Func {
 			userSession.MaxAge = int64(mm["maxAge"].(int64))
 		}
 
-		session.NewUserSession(resource, userSession, c.Request, c.Writer)
+		s, _ := session.NewUserSession(resource, userSession, c.Request, c.Writer)
 
-		return reflect.ValueOf("")
+		return reflect.ValueOf(s)
 	}
 }
 

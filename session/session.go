@@ -3,7 +3,6 @@ package session
 import (
 	"context"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/shoppehub/fastapi/base"
@@ -58,20 +57,22 @@ func getCookieSid(r *http.Request) string {
 	return sid
 }
 
-func NewUserSession(resource *crud.Resource, uid string, r *http.Request, w http.ResponseWriter) string {
+func NewUserSession(resource *crud.Resource, userSession UserSession, r *http.Request, w http.ResponseWriter) string {
 
-	cookie := saveSessionId(r, w)
+	cookie := saveSessionId(r, w, userSession.MaxAge)
 	oid, _ := primitive.ObjectIDFromHex(cookie.Value)
 
 	session := UserSession{
 		BaseId: base.BaseId{
 			Id: &oid,
 		},
-		Uid:     uid,
-		Agent:   r.UserAgent(),
-		Expires: &cookie.Expires,
-		Ip:      GetIP(r),
-		Status:  "login",
+		Uid:      userSession.Uid,
+		Agent:    r.UserAgent(),
+		Expires:  &cookie.Expires,
+		Ip:       GetIP(r),
+		Status:   "login",
+		Avatar:   userSession.Avatar,
+		NickName: userSession.NickName,
 	}
 
 	if cookie.Expires.String() == defaultExpires.String() {
@@ -87,7 +88,7 @@ func NewUserSession(resource *crud.Resource, uid string, r *http.Request, w http
 	return cookie.Value
 }
 
-func saveSessionId(r *http.Request, w http.ResponseWriter) *http.Cookie {
+func saveSessionId(r *http.Request, w http.ResponseWriter, maxAge int64) *http.Cookie {
 
 	domain := GetDomain(r.Host)
 
@@ -106,13 +107,7 @@ func saveSessionId(r *http.Request, w http.ResponseWriter) *http.Cookie {
 		cookie.SameSite = http.SameSiteNoneMode
 	}
 
-	sessionMaxAgeStr := r.URL.Query().Get("sessionMaxAge")
-	sessionMaxAge := int64(0)
-
-	if sessionMaxAgeStr != "" {
-		sessionMaxAge, _ = strconv.ParseInt(sessionMaxAgeStr, 10, 64)
-	}
-	newCookie(sessionMaxAge, &cookie)
+	newCookie(maxAge, &cookie)
 	http.SetCookie(w, &cookie)
 	return &cookie
 }

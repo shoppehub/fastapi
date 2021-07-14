@@ -175,9 +175,22 @@ func getCollectionFieldsFunc(resource *crud.Resource) jet.Func {
 func loginFunc(resource *crud.Resource, c *gin.Context) jet.Func {
 
 	return func(a jet.Arguments) reflect.Value {
-		uid := a.Get(0).Interface().(string)
+		mm := a.Get(0).Interface().(map[string]interface{})
 
-		session.NewUserSession(resource, uid, c.Request, c.Writer)
+		userSession := session.UserSession{
+			Uid: mm["uid"].(string),
+		}
+		if mm["avatar"] != nil {
+			userSession.Avatar = mm["avatar"].(string)
+		}
+		if mm["nickName"] != nil {
+			userSession.NickName = mm["nickName"].(string)
+		}
+		if mm["maxAge"] != nil {
+			userSession.MaxAge = int64(mm["maxAge"].(int64))
+		}
+
+		session.NewUserSession(resource, userSession, c.Request, c.Writer)
 
 		return reflect.ValueOf("")
 	}

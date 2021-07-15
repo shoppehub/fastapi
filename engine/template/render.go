@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shoppehub/fastapi/collection"
 	"github.com/shoppehub/fastapi/crud"
+	"github.com/shoppehub/fastapi/engine/service"
 	"github.com/shoppehub/sjet"
 	"github.com/shoppehub/sjet/context"
 	"github.com/shoppehub/sjet/engine"
@@ -145,10 +146,33 @@ func saveFunc(resource *crud.Resource) jet.Func {
 
 	return func(a jet.Arguments) reflect.Value {
 		collectionName := a.Get(0).Interface().(string)
-		data := a.Get(1).Interface()
-		result, _ := resource.SaveOrUpdateOne(data, &crud.UpdateOption{
-			CollectionName: &collectionName,
-		})
+
+		var collection collection.Collection
+
+		filter := bson.M{
+			"name": collectionName,
+		}
+		resource.FindOne(filter, &collection, crud.FindOneOptions{})
+
+		body := service.CollectionBody{}
+
+		data := a.Get(1).Interface().(map[string]interface{})
+
+		dfilter := data["filter"]
+		if dfilter != nil {
+			body.Filter = dfilter.(map[string]interface{})
+		}
+		bd := data["body"]
+		if bd == nil {
+			return reflect.Value{}
+		}
+		body.Body = bd.(map[string]interface{})
+
+		result, err := service.Save(resource, collection, body)
+		if err != nil {
+			logrus.Error(err)
+			return reflect.Value{}
+		}
 		return reflect.ValueOf(result)
 	}
 }

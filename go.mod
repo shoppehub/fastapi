@@ -16,7 +16,7 @@ require (
 	github.com/pelletier/go-toml v1.9.1 // indirect
 	github.com/shoppehub/commons v1.0.2
 	github.com/shoppehub/conf v1.0.1
-	github.com/shoppehub/sjet v1.1.6
+	github.com/shoppehub/sjet v1.1.14
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"reflect"
 	"time"
 
 	"github.com/shoppehub/fastapi/base"
@@ -22,12 +23,15 @@ func Save(resource *crud.Resource, collection collection.Collection, body Collec
 	if body.Filter != nil && len(body.Filter) > 0 {
 		var dbResult map[string]interface{}
 
-		if body.Filter[base.ID] != "" {
-			oid, err := primitive.ObjectIDFromHex(body.Filter[base.ID].(string))
-			if err != nil {
-				return nil, err
+		if body.Filter[base.ID] != nil {
+
+			if reflect.ValueOf(body.Filter[base.ID]).Type().Name() != "ObjectID" {
+				oid, err := primitive.ObjectIDFromHex(body.Filter[base.ID].(string))
+				if err != nil {
+					return nil, err
+				}
+				body.Filter[base.ID] = oid
 			}
-			body.Filter[base.ID] = oid
 			resource.FindOne(body.Filter, &dbResult, crud.FindOneOptions{
 				CollectionName: collectionName,
 			})

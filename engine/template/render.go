@@ -166,7 +166,13 @@ func saveFunc(resource *crud.Resource) jet.Func {
 		if bd == nil {
 			return reflect.Value{}
 		}
-		body.Body = bd.(map[string]interface{})
+		bdv := reflect.ValueOf(bd)
+
+		if bdv.Kind() == reflect.Ptr {
+			body.Body = *bd.(*map[string]interface{})
+		} else {
+			body.Body = bd.(map[string]interface{})
+		}
 
 		result, err := service.Save(resource, collection, body)
 		if err != nil {

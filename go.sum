@@ -250,8 +250,8 @@ github.com/shoppehub/commons v1.0.2 h1:SXJ5W3LUQayGDpYnqjS8O01trCnanWB7VfamMuj8J
 github.com/shoppehub/commons v1.0.2/go.mod h1:lt78LupLol44+7xlIHTNwOOF8qcXER3pA1sL1iP+PqU=
 github.com/shoppehub/conf v1.0.1 h1:OwnRnYOAkyLuUUZpQcN1UhmnEa1GZYDasWeJR8mAy70=
 github.com/shoppehub/conf v1.0.1/go.mod h1:0q56zPGa6XpLYUd0292RbJhKwedGT+yfeuRMAyouWCk=
-github.com/shoppehub/sjet v1.1.6 h1:hzW1yLBjBvnf0A9Le7NsysNFuJuRrD4S0Z7AACWTNbw=
-github.com/shoppehub/sjet v1.1.6/go.mod h1:qSinK2cNzimqzkhvx6jiT6YgMapoBYNONIaS9hy/DgQ=
+github.com/shoppehub/sjet v1.1.14 h1:ux7wS+dqTMhTm3g88u73f2cZ2QtPPWIo2+OyCR9Kzfg=
+github.com/shoppehub/sjet v1.1.14/go.mod h1:qSinK2cNzimqzkhvx6jiT6YgMapoBYNONIaS9hy/DgQ=
 github.com/shopspring/decimal v1.2.0 h1:abSATXmQEYyShuxI4/vyW3tV1MrKAJzCZ/0zLUXYbsQ=
 github.com/shopspring/decimal v1.2.0/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=

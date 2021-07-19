@@ -55,7 +55,7 @@ func initLogin(r *gin.Engine) {
 			if reg.Match([]byte(c.Request.URL.Path)) {
 				// 匹配到需要登录
 				if GetUserId(c.Request) == "" {
-					c.Redirect(http.StatusFound, loginUrl)
+					c.Redirect(http.StatusFound, loginUrl+"?target="+c.Request.URL.String())
 					return
 				}
 			}

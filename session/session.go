@@ -80,7 +80,7 @@ func NewUserSession(resource *crud.Resource, userSession UserSession, r *http.Re
 		NickName: userSession.NickName,
 	}
 
-	if cookie.Expires.String() == defaultExpires.String() {
+	if cookie.Expires.IsZero() {
 		d := time.Duration(24) * time.Hour
 		expires := time.Now().Add(d)
 		session.Expires = &expires

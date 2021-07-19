@@ -16,8 +16,6 @@ var MaxAge int
 
 var collectionName = "user_sessions"
 
-var defaultExpires = time.Unix(1, 0)
-
 // 获取 session 的登录id
 func GetUserId(r *http.Request) string {
 	s := GetUserSession(r)
@@ -126,8 +124,6 @@ func newCookie(sessionMaxAge int64, cookie *http.Cookie) {
 	} else if MaxAge > 0 {
 		d := time.Duration(MaxAge) * time.Second
 		cookie.Expires = time.Now().Add(d)
-	} else {
-		cookie.Expires = defaultExpires
 	}
 }
 

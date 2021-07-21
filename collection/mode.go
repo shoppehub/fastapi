@@ -159,12 +159,12 @@ func (field *CollectionField) GetCustomSelectOptions(savedValues interface{}, cu
 		if reflect.TypeOf(customValues).String() == "primitive.A" {
 			vas := customValues.(primitive.A)
 			for _, v := range vas {
-				customStringValues[v.(string)] = "1"
+				customStringValues[v.(string)] = v.(string)
 			}
 		} else {
 			vas := customValues.([]string)
 			for _, v := range vas {
-				customStringValues[v] = "1"
+				customStringValues[v] = v
 			}
 		}
 	}

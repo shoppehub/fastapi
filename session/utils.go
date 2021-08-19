@@ -11,13 +11,6 @@ import (
 
 // 获取ip
 func GetIP(r *http.Request) string {
-	//Get IP from the X-REAL-IP header
-	ip := r.Header.Get("X-REAL-IP")
-	netIP := net.ParseIP(ip)
-	if netIP != nil {
-		return ip
-	}
-
 	//Get IP from X-FORWARDED-FOR header
 	ips := r.Header.Get("X-FORWARDED-FOR")
 	splitIps := strings.Split(ips, ",")
@@ -26,6 +19,13 @@ func GetIP(r *http.Request) string {
 		if netIP != nil {
 			return ip
 		}
+	}
+
+	//Get IP from the X-REAL-IP header
+	ip := r.Header.Get("X-REAL-IP")
+	netIP := net.ParseIP(ip)
+	if netIP != nil {
+		return ip
 	}
 
 	//Get IP from RemoteAddr

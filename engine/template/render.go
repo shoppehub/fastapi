@@ -1,7 +1,9 @@
 package template
 
 import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"reflect"
+	"strings"
 
 	"github.com/CloudyKit/jet/v6"
 	"github.com/gin-gonic/gin"
@@ -53,6 +55,9 @@ func InitAPIFunc(resource *crud.Resource) {
 	})
 	sjet.RegCustomFunc("save", func(c *gin.Context) jet.Func {
 		return saveFunc(resource)
+	})
+	sjet.RegCustomFunc("deleteById", func(c *gin.Context) jet.Func {
+		return deleteByIdFunc(resource)
 	})
 
 	sjet.RegCustomFunc("sort", func(c *gin.Context) jet.Func {
@@ -180,6 +185,26 @@ func saveFunc(resource *crud.Resource) jet.Func {
 			return reflect.Value{}
 		}
 		return reflect.ValueOf(result)
+	}
+}
+
+func deleteByIdFunc(resource *crud.Resource) jet.Func {
+
+	return func(a jet.Arguments) reflect.Value {
+
+		tableName := a.Get(0).String()
+
+		id := a.Get(1).Interface().(primitive.ObjectID)
+
+		if strings.Trim(tableName, " ") == "" {
+			return reflect.ValueOf(-1)
+		}
+
+		err := resource.DeleteById(tableName, id)
+		if err != nil {
+			return reflect.ValueOf(0)
+		}
+		return reflect.ValueOf(1)
 	}
 }
 

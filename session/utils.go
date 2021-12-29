@@ -3,6 +3,8 @@ package session
 import (
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -61,4 +63,13 @@ func GetDomain(host string) string {
 			return strings.Join([]string{hostParts[lengthOfHostParts-2], hostParts[lengthOfHostParts-1]}, ".")
 		}
 	}
+}
+
+// 获取运行路径
+func GetCurrentDirectory() string {
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		logrus.Error(err)
+	}
+	return strings.Replace(dir, "\\", "/", -1)
 }

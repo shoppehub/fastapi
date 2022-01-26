@@ -234,9 +234,8 @@ func (instance *Resource) QueryAllowDiskUse(pipeline []bson.D, opts FindOptions,
 		"$count", "totalCount",
 	}})
 
-	var v *options.AggregateOptions
-	v.AllowDiskUse = &allowDiskUse
-	countCursor, countErr := instance.DB.Collection(tableName).Aggregate(context.Background(), countPipeline, v)
+	aggregateOptions := options.AggregateOptions{AllowDiskUse: &allowDiskUse}
+	countCursor, countErr := instance.DB.Collection(tableName).Aggregate(context.Background(), countPipeline, &aggregateOptions)
 	if countErr != nil {
 		str, _ := json.Marshal(countPipeline)
 		logrus.Error("Aggregate Error of "+tableName, string(str))

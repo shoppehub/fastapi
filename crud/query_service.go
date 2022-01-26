@@ -221,6 +221,83 @@ func (instance *Resource) Query(pipeline []bson.D, opts FindOptions) *commons.Pa
 	return &response
 }
 
+func (instance *Resource) QueryAllowDiskUse(pipeline []bson.D, opts FindOptions, allowDiskUse bool) *commons.PagingResponse {
+
+	tableName := getTableName(opts.FindOneOptions)
+	var response commons.PagingResponse
+
+	var countPipeline mongo.Pipeline
+	for _, p := range pipeline {
+		countPipeline = append(countPipeline, p)
+	}
+	countPipeline = append(countPipeline, bson.D{{
+		"$count", "totalCount",
+	}})
+
+	var v *options.AggregateOptions
+	v.AllowDiskUse = &allowDiskUse
+	countCursor, countErr := instance.DB.Collection(tableName).Aggregate(context.Background(), countPipeline, v)
+	if countErr != nil {
+		str, _ := json.Marshal(countPipeline)
+		logrus.Error("Aggregate Error of "+tableName, string(str))
+		return &response
+	}
+	var response2 []commons.PagingResponse
+	countCursor.All(context.Background(), &response2)
+
+	if len(response2) > 0 {
+		response.TotalCount = response2[0].TotalCount
+	} else {
+		// 没有数据的情况下，不用查询啦
+		return &response
+	}
+
+	if opts.PageSize == 0 {
+		opts.PageSize = 15
+	}
+	if opts.CurPage == 0 {
+		opts.CurPage = 1
+	}
+	response.CurPage = opts.CurPage
+	response.PageSize = opts.PageSize
+
+	skip := int64(0)
+	if opts.CurPage > 0 {
+		curPage := opts.CurPage
+		pageSize := opts.PageSize
+		skip = (curPage - 1) * pageSize
+	}
+	pipeline = append(pipeline, bson.D{{
+		"$skip", &skip,
+	}})
+
+	pipeline = append(pipeline, bson.D{{
+		"$limit", &opts.PageSize,
+	}})
+
+	cursor, err := instance.DB.Collection(tableName).Aggregate(context.Background(), pipeline)
+	if cursor == nil {
+		str, _ := json.Marshal(pipeline)
+		logrus.Error("Aggregate Error of "+tableName, string(str))
+		return &response
+	}
+
+	if opts.Results != nil {
+		if err = cursor.All(context.Background(), opts.Results); err != nil {
+			logrus.Error(err, pipeline)
+		}
+		response.Data = opts.Results
+	} else {
+		var result []bson.M
+		if err = cursor.All(context.Background(), &result); err != nil {
+			logrus.Error(err, pipeline)
+		}
+		response.Data = result
+	}
+	response.Compute()
+	return &response
+}
+
 func (instance *Resource) QueryWithoutPaging(pipeline []bson.D, opts FindOptions) ([]bson.M, error) {
 
 	tableName := getTableName(opts.FindOneOptions)

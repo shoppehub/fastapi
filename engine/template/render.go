@@ -111,6 +111,11 @@ func queryFunc(resource *crud.Resource) jet.Func {
 		typeName := reflect.ValueOf(a.Get(0).Interface()).Type().Name()
 		findOption := a.Get(1).Interface().(crud.FindOptions)
 
+		allowDiskUse := ""
+		if a.Get(2).IsValid() && !a.Get(2).IsZero() {
+			allowDiskUse = a.Get(2).String()
+		}
+
 		if typeName == "M" {
 			if findOption.CurPage == 0 && findOption.PageSize == 0 {
 				r := resource.FindWithoutPaging(a.Get(0).Interface().(bson.M), findOption)
@@ -124,8 +129,13 @@ func queryFunc(resource *crud.Resource) jet.Func {
 			r, _ := resource.QueryWithoutPaging(a.Get(0).Interface().([]bson.D), findOption)
 			return reflect.ValueOf(r)
 		} else {
-			r := resource.Query(a.Get(0).Interface().([]bson.D), findOption)
-			return reflect.ValueOf(r)
+			if allowDiskUse != "" {
+				r := resource.QueryAllowDiskUse(a.Get(0).Interface().([]bson.D), findOption, true)
+				return reflect.ValueOf(r)
+			} else {
+				r := resource.Query(a.Get(0).Interface().([]bson.D), findOption)
+				return reflect.ValueOf(r)
+			}
 		}
 	}
 }

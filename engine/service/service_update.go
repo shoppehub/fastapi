@@ -132,7 +132,7 @@ func Update(resource *crud.Resource, collection collection.Collection, body Coll
 
 	collectionName := collection.GetCollectionName()
 	upsertFalse := false
-	if body.Filter == nil || len(body.Filter) > 0 {
+	if body.Filter == nil || len(body.Filter) == 0 {
 		logrus.Error("Filter can not be nil!")
 		return &mongo.UpdateResult{}, nil
 	}

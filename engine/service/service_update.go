@@ -144,7 +144,11 @@ func Update(resource *crud.Resource, collection collection.Collection, body Coll
 		value := body.Body[field.Name]
 		if field.Type == "objectId" {
 			if reflect.TypeOf(value).Name() == "string" {
-				setElements = append(setElements, bson.E{Key: field.Name, Value: primitive.ObjectIDFromHex(value.(string))})
+				hex, err := primitive.ObjectIDFromHex(value.(string))
+				if err != nil {
+					return nil, nil
+				}
+				setElements = append(setElements, bson.E{Key: field.Name, Value: hex})
 			} else {
 				setElements = append(setElements, bson.E{Key: field.Name, Value: value})
 			}

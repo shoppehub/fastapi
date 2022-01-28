@@ -142,6 +142,12 @@ func Update(resource *crud.Resource, collection collection.Collection, body Coll
 	now := time.Now()
 	for _, field := range collection.Fields {
 		value := body.Body[field.Name]
+		if value == nil {
+			continue
+		}
+		if field.Name == "int" && value == 0 {
+			continue
+		}
 		if field.Type == "objectId" {
 			if reflect.TypeOf(value).Name() == "string" {
 				hex, err := primitive.ObjectIDFromHex(value.(string))

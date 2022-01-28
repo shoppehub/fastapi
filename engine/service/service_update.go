@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"go.mongodb.org/mongo-driver/mongo"
 	"reflect"
 	"time"
 
@@ -126,4 +127,58 @@ func Save(resource *crud.Resource, collection collection.Collection, body Collec
 	}
 
 	return result, nil
+}
+func Update(resource *crud.Resource, collection collection.Collection, body CollectionBody) (*mongo.UpdateResult, error) {
+
+	collectionName := collection.GetCollectionName()
+	upsertFalse := false
+	if body.Filter == nil || len(body.Filter) > 0 {
+		logrus.Error("Filter can not be nil!")
+		return &mongo.UpdateResult{}, nil
+	}
+
+	setElements := bson.D{}
+	unsetElements := bson.D{}
+	now := time.Now()
+	for _, field := range collection.Fields {
+		value := body.Body[field.Name]
+		if field.Type == "objectId" {
+			if reflect.TypeOf(value).Name() == "string" {
+				setElements = append(setElements, bson.E{Key: field.Name, Value: primitive.ObjectIDFromHex(value.(string))})
+			} else {
+				setElements = append(setElements, bson.E{Key: field.Name, Value: value})
+			}
+			continue
+		}
+		if value == "null" {
+			unsetElements = append(unsetElements, bson.E{Key: field.Name, Value: ""})
+			continue
+		}
+
+		if field.Value == "time.Now()" {
+			value = now
+		}
+		if value != nil {
+			setElements = append(setElements, bson.E{Key: field.Name, Value: value})
+		}
+	}
+	update := bson.D{
+		{"$set", setElements},
+	}
+
+	if len(unsetElements) > 0 {
+		update = append(update, bson.E{Key: "$unset", Value: unsetElements})
+	}
+	updateResult, err := resource.DB.Collection(*collectionName).UpdateMany(
+		context.Background(),
+		body.Filter,
+		update,
+		&options.UpdateOptions{Upsert: &upsertFalse})
+	if err != nil {
+		updateBytes, _ := json.Marshal(update)
+		logrus.Error(err, string(updateBytes))
+		return nil, err
+	}
+
+	return updateResult, nil
 }

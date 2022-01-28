@@ -56,6 +56,9 @@ func InitAPIFunc(resource *crud.Resource) {
 	sjet.RegCustomFunc("save", func(c *gin.Context) jet.Func {
 		return saveFunc(resource)
 	})
+	sjet.RegCustomFunc("update", func(c *gin.Context) jet.Func {
+		return updateFunc(resource)
+	})
 	sjet.RegCustomFunc("deleteById", func(c *gin.Context) jet.Func {
 		return deleteByIdFunc(resource)
 	})
@@ -190,6 +193,47 @@ func saveFunc(resource *crud.Resource) jet.Func {
 		}
 
 		result, err := service.Save(resource, collection, body)
+		if err != nil {
+			logrus.Error(err)
+			return reflect.Value{}
+		}
+		return reflect.ValueOf(result)
+	}
+}
+
+func updateFunc(resource *crud.Resource) jet.Func {
+
+	return func(a jet.Arguments) reflect.Value {
+		collectionName := a.Get(0).Interface().(string)
+
+		var collection collection.Collection
+
+		filter := bson.M{
+			"name": collectionName,
+		}
+		resource.FindOne(filter, &collection, crud.FindOneOptions{})
+
+		body := service.CollectionBody{}
+
+		data := a.Get(1).Interface().(map[string]interface{})
+
+		dfilter := data["filter"]
+		if dfilter != nil {
+			body.Filter = dfilter.(map[string]interface{})
+		}
+		bd := data["body"]
+		if bd == nil {
+			return reflect.Value{}
+		}
+		bdv := reflect.ValueOf(bd)
+
+		if bdv.Kind() == reflect.Ptr {
+			body.Body = *bd.(*map[string]interface{})
+		} else {
+			body.Body = bd.(map[string]interface{})
+		}
+
+		result, err := service.Update(resource, collection, body)
 		if err != nil {
 			logrus.Error(err)
 			return reflect.Value{}

@@ -33,16 +33,16 @@ func NewDB(uri string, databaseName string) (*Resource, error) {
 
 	// Replace the uri string with your MongoDB deployment's connection string.
 	// uri := os.Getenv("MONGO_URL")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
 		return nil, err
 	}
 
-	ctxping, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	pingCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	err = client.Ping(ctxping, readpref.Primary())
+	err = client.Ping(pingCtx, readpref.Primary())
 	if err != nil {
 		return nil, err
 	}
@@ -55,3 +55,40 @@ func NewDB(uri string, databaseName string) (*Resource, error) {
 		Client: client,
 	}, nil
 }
+
+// 事务demo, 不能在单节点使用（副本集可以）
+//func UseSession(client *mongo.Client) {
+//	client.UseSession(client, func(sessionContext mongo.SessionContext) error {
+//		err := sessionContext.StartTransaction(options.Transaction().
+//			SetReadConcern(readconcern.Snapshot()).
+//			SetWriteConcern(writeconcern.New(writeconcern.WMajority())),
+//		)
+//		if err != nil {
+//			return err
+//		}
+//		_, err = client.Database("aa").Collection("bb").InsertOne(sessionContext, bson.D{{"aa", 3}})
+//		if err != nil {
+//			_ = sessionContext.AbortTransaction(sessionContext)
+//			return err
+//		}
+//		_, err = client.Database("aa").Collection("bb").InsertOne(sessionContext, bson.D{{"bb", 3}})
+//		if err != nil {
+//			_ = sessionContext.AbortTransaction(sessionContext)
+//			return err
+//		}
+//		for {
+//			err = sessionContext.CommitTransaction(sessionContext)
+//			switch e := err.(type) {
+//			case nil:
+//				return nil
+//			case mongo.CommandError:
+//				if e.HasErrorLabel("UnknownTransactionCommitResult") {
+//					continue
+//				}
+//				return e
+//			default:
+//				return e
+//			}
+//		}
+//	})
+//}

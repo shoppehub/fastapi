@@ -65,8 +65,9 @@ func (instance *Resource) FindOne(filter bson.M, result interface{}, opts FindOn
 	}
 	findOptions.SetSort(sort)
 
-	singerResult := instance.DB.Collection(tableName).FindOne(context.Background(), filter, findOptions)
-	singerResult.Decode(result)
+	singleResult := instance.DB.Collection(tableName).FindOne(context.Background(), filter, findOptions)
+	singleResult.Decode(result)
+	// TODO singleResult.cur.Close(context.Background())
 }
 
 // @param filterJSON mongo查询语句
@@ -74,12 +75,15 @@ func (instance *Resource) FindWithoutPaging(filter bson.M, opts FindOptions) []b
 
 	tableName := getTableName(opts.FindOneOptions)
 
-	cursor, err := instance.DB.Collection(tableName).Find(context.Background(), filter)
+	ctx := context.Background()
+	cursor, err := instance.DB.Collection(tableName).Find(ctx, filter)
 
 	var result []bson.M
-	if err = cursor.All(context.Background(), &result); err != nil {
+	if err = cursor.All(ctx, &result); err != nil {
 		logrus.Error(err, filter)
 	}
+
+	cursor.Close(ctx)
 
 	return result
 }
@@ -91,7 +95,8 @@ func (instance *Resource) Find(filter bson.M, opts FindOptions) *commons.PagingR
 
 	var response commons.PagingResponse
 
-	total, err := instance.DB.Collection(tableName).CountDocuments(context.Background(), filter)
+	ctx := context.Background()
+	total, err := instance.DB.Collection(tableName).CountDocuments(ctx, filter)
 	if err != nil {
 		str, _ := json.Marshal(filter)
 
@@ -120,20 +125,22 @@ func (instance *Resource) Find(filter bson.M, opts FindOptions) *commons.PagingR
 		option.Skip = &skip
 	}
 
-	cursor, err := instance.DB.Collection(tableName).Find(context.Background(), filter, option)
+	cursor, err := instance.DB.Collection(tableName).Find(ctx, filter, option)
 
 	if opts.Results != nil {
-		if err = cursor.All(context.Background(), opts.Results); err != nil {
+		if err = cursor.All(ctx, opts.Results); err != nil {
 			logrus.Error(err, filter)
 		}
 		response.Data = opts.Results
 	} else {
 		var result []bson.M
-		if err = cursor.All(context.Background(), &result); err != nil {
+		if err = cursor.All(ctx, &result); err != nil {
 			logrus.Error(err, filter)
 		}
 		response.Data = result
 	}
+
+	cursor.Close(ctx)
 
 	response.Compute()
 
@@ -159,14 +166,15 @@ func (instance *Resource) Query(pipeline []bson.D, opts FindOptions) *commons.Pa
 		"$count", "totalCount",
 	}})
 
-	countCursor, countErr := instance.DB.Collection(tableName).Aggregate(context.Background(), countPipeline)
+	ctx := context.Background()
+	countCursor, countErr := instance.DB.Collection(tableName).Aggregate(ctx, countPipeline)
 	if countErr != nil {
 		str, _ := json.Marshal(countPipeline)
 		logrus.Error("Aggregate Error of "+tableName, string(str))
 		return &response
 	}
 	var response2 []commons.PagingResponse
-	countCursor.All(context.Background(), &response2)
+	countCursor.All(ctx, &response2)
 
 	if len(response2) > 0 {
 		response.TotalCount = response2[0].TotalCount
@@ -198,7 +206,7 @@ func (instance *Resource) Query(pipeline []bson.D, opts FindOptions) *commons.Pa
 		"$limit", &opts.PageSize,
 	}})
 
-	cursor, err := instance.DB.Collection(tableName).Aggregate(context.Background(), pipeline)
+	cursor, err := instance.DB.Collection(tableName).Aggregate(ctx, pipeline)
 	if cursor == nil {
 		str, _ := json.Marshal(pipeline)
 		logrus.Error("Aggregate Error of "+tableName, string(str))
@@ -206,18 +214,26 @@ func (instance *Resource) Query(pipeline []bson.D, opts FindOptions) *commons.Pa
 	}
 
 	if opts.Results != nil {
-		if err = cursor.All(context.Background(), opts.Results); err != nil {
+		if err = cursor.All(ctx, opts.Results); err != nil {
 			logrus.Error(err, pipeline)
 		}
 		response.Data = opts.Results
 	} else {
 		var result []bson.M
-		if err = cursor.All(context.Background(), &result); err != nil {
+		if err = cursor.All(ctx, &result); err != nil {
 			logrus.Error(err, pipeline)
 		}
 		response.Data = result
 	}
+
+	cursor.Close(ctx)
+	closeCountCursor := countCursor.Close(ctx)
+	if closeCountCursor != nil {
+		logrus.Error(closeCountCursor)
+	}
+
 	response.Compute()
+
 	return &response
 }
 
@@ -235,14 +251,15 @@ func (instance *Resource) QueryAllowDiskUse(pipeline []bson.D, opts FindOptions,
 	}})
 
 	aggregateOptions := options.AggregateOptions{AllowDiskUse: &allowDiskUse}
-	countCursor, countErr := instance.DB.Collection(tableName).Aggregate(context.Background(), countPipeline, &aggregateOptions)
+	ctx := context.Background()
+	countCursor, countErr := instance.DB.Collection(tableName).Aggregate(ctx, countPipeline, &aggregateOptions)
 	if countErr != nil {
 		str, _ := json.Marshal(countPipeline)
 		logrus.Error("Aggregate Error of "+tableName, string(str))
 		return &response
 	}
 	var response2 []commons.PagingResponse
-	countCursor.All(context.Background(), &response2)
+	countCursor.All(ctx, &response2)
 
 	if len(response2) > 0 {
 		response.TotalCount = response2[0].TotalCount
@@ -274,7 +291,7 @@ func (instance *Resource) QueryAllowDiskUse(pipeline []bson.D, opts FindOptions,
 		"$limit", &opts.PageSize,
 	}})
 
-	cursor, err := instance.DB.Collection(tableName).Aggregate(context.Background(), pipeline)
+	cursor, err := instance.DB.Collection(tableName).Aggregate(ctx, pipeline)
 	if cursor == nil {
 		str, _ := json.Marshal(pipeline)
 		logrus.Error("Aggregate Error of "+tableName, string(str))
@@ -282,17 +299,24 @@ func (instance *Resource) QueryAllowDiskUse(pipeline []bson.D, opts FindOptions,
 	}
 
 	if opts.Results != nil {
-		if err = cursor.All(context.Background(), opts.Results); err != nil {
+		if err = cursor.All(ctx, opts.Results); err != nil {
 			logrus.Error(err, pipeline)
 		}
 		response.Data = opts.Results
 	} else {
 		var result []bson.M
-		if err = cursor.All(context.Background(), &result); err != nil {
+		if err = cursor.All(ctx, &result); err != nil {
 			logrus.Error(err, pipeline)
 		}
 		response.Data = result
 	}
+
+	cursor.Close(ctx)
+	closeCountCursor := countCursor.Close(ctx)
+	if closeCountCursor != nil {
+		logrus.Error(closeCountCursor)
+	}
+
 	response.Compute()
 	return &response
 }
@@ -303,12 +327,15 @@ func (instance *Resource) QueryWithoutPaging(pipeline []bson.D, opts FindOptions
 
 	var result []bson.M
 
-	cursor, err := instance.DB.Collection(tableName).Aggregate(context.Background(), pipeline)
+	ctx := context.Background()
+	cursor, err := instance.DB.Collection(tableName).Aggregate(ctx, pipeline)
 
-	if err = cursor.All(context.Background(), &result); err != nil {
+	if err = cursor.All(ctx, &result); err != nil {
 		logrus.Error(err, pipeline)
 		return nil, err
 	}
+
+	cursor.Close(ctx)
 
 	return result, nil
 }

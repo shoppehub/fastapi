@@ -19,8 +19,8 @@ type DeleteOption struct {
 // 删除的filter
 
 //根据主键删除数据
-func (resource *Resource) DeleteById(tableName string, id primitive.ObjectID) error {
-	return resource.DeleteAny(&DeleteOption{
+func (instance *Resource) DeleteById(tableName string, id primitive.ObjectID) error {
+	return instance.DeleteAny(&DeleteOption{
 		CollectionName: tableName,
 		Filter: []Filter{
 			0: {
@@ -32,7 +32,7 @@ func (resource *Resource) DeleteById(tableName string, id primitive.ObjectID) er
 }
 
 //根据条件删除数据
-func (resource *Resource) DeleteAny(deleteOption *DeleteOption) error {
+func (instance *Resource) DeleteAny(deleteOption *DeleteOption) error {
 	filter := make(map[string]interface{})
 	for _, v := range deleteOption.Filter {
 		if v.Operator == "" {
@@ -43,7 +43,7 @@ func (resource *Resource) DeleteAny(deleteOption *DeleteOption) error {
 			filter[v.Key] = bson.M{v.Operator: v.Value}
 		}
 	}
-	_, err := resource.DB.Collection(deleteOption.CollectionName).DeleteMany(context.Background(), filter)
+	_, err := instance.DB.Collection(deleteOption.CollectionName).DeleteMany(context.Background(), filter)
 	if err != nil {
 		return err
 	}

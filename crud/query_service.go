@@ -73,7 +73,6 @@ func (instance *Resource) FindOne(filter bson.M, result interface{}, opts FindOn
 		}
 		return
 	}
-	logrus.Debug(session.Client().NumberSessionsInProgress())
 	defer session.EndSession(context.TODO())
 
 	collection := session.Client().Database(instance.DB.Name()).Collection(tableName)

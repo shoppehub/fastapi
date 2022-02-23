@@ -113,7 +113,6 @@ func (instance *Resource) SaveOrUpdateOne(u interface{}, updateOptions ...*Updat
 		}
 		return nil, startSessionErr
 	}
-	logrus.Debug(session.Client().NumberSessionsInProgress())
 	defer session.EndSession(context.TODO())
 
 	_, err := session.Client().Database(instance.DB.Name()).Collection(collectionName).UpdateOne(context.Background(), filter, update, &options.UpdateOptions{Upsert: &Upsert})

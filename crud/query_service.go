@@ -65,9 +65,22 @@ func (instance *Resource) FindOne(filter bson.M, result interface{}, opts FindOn
 	}
 	findOptions.SetSort(sort)
 
-	singleResult := instance.DB.Collection(tableName).FindOne(context.Background(), filter, findOptions)
+	session, err := instance.Client.StartSession()
+	if err != nil {
+		logrus.Error(err)
+		if session != nil {
+			session.EndSession(context.TODO())
+		}
+		return
+	}
+	logrus.Debug(session.Client().NumberSessionsInProgress())
+	defer session.EndSession(context.TODO())
+
+	collection := session.Client().Database(instance.DB.Name()).Collection(tableName)
+	background := context.Background()
+	singleResult := collection.FindOne(background, filter, findOptions)
 	singleResult.Decode(result)
-	// TODO singleResult.cur.Close(context.Background())
+
 }
 
 // @param filterJSON mongo查询语句

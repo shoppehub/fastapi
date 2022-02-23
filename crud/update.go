@@ -3,6 +3,7 @@ package crud
 import (
 	"context"
 	"errors"
+	"github.com/sirupsen/logrus"
 	"reflect"
 	"time"
 
@@ -42,7 +43,7 @@ type updateField struct {
 }
 
 // 修改一个数据
-func (resource *Resource) SaveOrUpdateOne(u interface{}, updateOptions ...*UpdateOption) (interface{}, error) {
+func (instance *Resource) SaveOrUpdateOne(u interface{}, updateOptions ...*UpdateOption) (interface{}, error) {
 
 	var collectionName string
 	var filterField []string
@@ -104,13 +105,23 @@ func (resource *Resource) SaveOrUpdateOne(u interface{}, updateOptions ...*Updat
 			filter = append(filter, bson.E{f, obj})
 		}
 	}
+	session, startSessionErr := instance.Client.StartSession()
+	if startSessionErr != nil {
+		logrus.Error(startSessionErr)
+		if session != nil {
+			session.EndSession(context.TODO())
+		}
+		return nil, startSessionErr
+	}
+	logrus.Debug(session.Client().NumberSessionsInProgress())
+	defer session.EndSession(context.TODO())
 
-	_, err := resource.DB.Collection(collectionName).UpdateOne(context.Background(), filter, update, &options.UpdateOptions{Upsert: &Upsert})
+	_, err := session.Client().Database(instance.DB.Name()).Collection(collectionName).UpdateOne(context.Background(), filter, update, &options.UpdateOptions{Upsert: &Upsert})
 	if err != nil {
 		return nil, err
 	}
 	result := reflect.New(reflect.TypeOf(u))
-	err = resource.DB.Collection(collectionName).FindOne(context.Background(), filter).Decode(result.Interface())
+	err = session.Client().Database(instance.DB.Name()).Collection(collectionName).FindOne(context.Background(), filter).Decode(result.Interface())
 	return result.Elem().Interface(), err
 }
 

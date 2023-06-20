@@ -126,11 +126,11 @@ func writeCookie(r *http.Request, w http.ResponseWriter, session UserSession) *h
 	userInfoStr, err := json.Marshal(userInfo)
 	if err == nil {
 		logrus.Error("Error: ", err)
-		userInfoStr, encryptError := Encrypt(string(userInfoStr), "chemball", sid)
+		userInfoStr, encryptError := Encrypt(string(userInfoStr), sid, "chemball")
 		if encryptError == nil {
 			userCookie := http.Cookie{
 				Name:   ChemballUserKey,
-				Value:  string(userInfoStr),
+				Value:  userInfoStr,
 				Path:   "/",
 				Domain: domain,
 			}

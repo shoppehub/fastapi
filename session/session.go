@@ -11,6 +11,7 @@ import (
 )
 
 var SidKey = "sid"
+var ChemballUserKey = "c_u"
 
 var MaxAge int
 
@@ -64,7 +65,8 @@ func getCookieSid(r *http.Request) string {
 
 func NewUserSession(resource *crud.Resource, userSession UserSession, r *http.Request, w http.ResponseWriter) (*UserSession, string) {
 
-	cookie := saveSessionId(r, w, userSession.MaxAge)
+	cookie := writeCookie(r, w, userSession)
+
 	oid, _ := primitive.ObjectIDFromHex(cookie.Value)
 
 	session := UserSession{
@@ -93,31 +95,45 @@ func NewUserSession(resource *crud.Resource, userSession UserSession, r *http.Re
 	return &session, cookie.Value
 }
 
-func saveSessionId(r *http.Request, w http.ResponseWriter, maxAge int64) *http.Cookie {
+func writeCookie(r *http.Request, w http.ResponseWriter, session UserSession) *http.Cookie {
 
 	domain := GetDomain(r.Host)
 
 	sid := primitive.NewObjectID().Hex()
 
-	cookie := http.Cookie{
+	// sid 是服务端判断 sessionId
+	sidCookie := http.Cookie{
 		Name:     SidKey,
 		Value:    sid,
 		Path:     "/",
 		Domain:   domain,
 		HttpOnly: true,
 	}
-
 	if r.TLS != nil {
-		cookie.Secure = true
-		cookie.SameSite = http.SameSiteNoneMode
+		sidCookie.Secure = true
+		sidCookie.SameSite = http.SameSiteNoneMode
 	}
+	setCookieExpires(&sidCookie, session.MaxAge)
 
-	newCookie(maxAge, &cookie)
-	http.SetCookie(w, &cookie)
-	return &cookie
+	userCookie := http.Cookie{
+		Name:   ChemballUserKey,
+		Value:  sid,
+		Path:   "/",
+		Domain: domain,
+	}
+	if r.TLS != nil {
+		userCookie.Secure = true
+		userCookie.SameSite = http.SameSiteNoneMode
+	}
+	setCookieExpires(&userCookie, session.MaxAge)
+
+	http.SetCookie(w, &sidCookie)
+	http.SetCookie(w, &userCookie)
+	return &sidCookie
 }
 
-func newCookie(sessionMaxAge int64, cookie *http.Cookie) {
+/*设置cookie的过期时间*/
+func setCookieExpires(cookie *http.Cookie, sessionMaxAge int64) {
 	if sessionMaxAge > 0 {
 		d := time.Duration(sessionMaxAge) * time.Second
 		cookie.Expires = time.Now().Add(d)

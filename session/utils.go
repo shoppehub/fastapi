@@ -84,7 +84,7 @@ func Encrypt(inputStr string, key string, iv string) (string, error) {
 		iv = "chemball"
 	}
 	// Create AES cipher instance
-	block, err := aes.NewCipher([]byte(key))
+	block, err := aes.NewCipher(pkcs7Pad([]byte(key), aes.BlockSize))
 	if err != nil {
 		return "", err
 	}
@@ -93,8 +93,7 @@ func Encrypt(inputStr string, key string, iv string) (string, error) {
 	paddedInput := pkcs7Pad([]byte(inputStr), aes.BlockSize)
 
 	// Create CBC mode cipher
-	ivBytes := []byte(iv)
-	cbc := cipher.NewCBCEncrypter(block, ivBytes)
+	cbc := cipher.NewCBCEncrypter(block, pkcs7Pad([]byte(iv), aes.BlockSize))
 
 	// Encrypt the padded input
 	encrypted := make([]byte, len(paddedInput))

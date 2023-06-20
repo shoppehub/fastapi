@@ -125,7 +125,6 @@ func writeCookie(r *http.Request, w http.ResponseWriter, session UserSession) *h
 	}
 	userInfoStr, err := json.Marshal(userInfo)
 	if err == nil {
-		logrus.Error("Error: ", err)
 		userInfoStr, encryptError := Encrypt(string(userInfoStr), sid, "chemball")
 		if encryptError == nil {
 			userCookie := http.Cookie{
@@ -140,6 +139,8 @@ func writeCookie(r *http.Request, w http.ResponseWriter, session UserSession) *h
 			}
 			setCookieExpires(&userCookie, session.MaxAge)
 			http.SetCookie(w, &userCookie)
+		} else {
+			logrus.Error("Encrypt Error: ", encryptError)
 		}
 	} else {
 		logrus.Error("json.Marshal Error: ", err)

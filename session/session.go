@@ -2,6 +2,8 @@ package session
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 
@@ -114,21 +116,35 @@ func writeCookie(r *http.Request, w http.ResponseWriter, session UserSession) *h
 		sidCookie.SameSite = http.SameSiteNoneMode
 	}
 	setCookieExpires(&sidCookie, session.MaxAge)
-
-	userCookie := http.Cookie{
-		Name:   ChemballUserKey,
-		Value:  sid,
-		Path:   "/",
-		Domain: domain,
-	}
-	if r.TLS != nil {
-		userCookie.Secure = true
-		userCookie.SameSite = http.SameSiteNoneMode
-	}
-	setCookieExpires(&userCookie, session.MaxAge)
-
 	http.SetCookie(w, &sidCookie)
-	http.SetCookie(w, &userCookie)
+
+	userInfo := map[string]interface{}{
+		"avatar":   session.Avatar,
+		"nickName": session.NickName,
+		"email":    session.Email,
+	}
+	userInfoStr, err := json.Marshal(userInfo)
+	if err == nil {
+		logrus.Error("Error: ", err)
+		userInfoStr, encryptError := Encrypt(string(userInfoStr), "chemball", sid)
+		if encryptError == nil {
+			userCookie := http.Cookie{
+				Name:   ChemballUserKey,
+				Value:  string(userInfoStr),
+				Path:   "/",
+				Domain: domain,
+			}
+			if r.TLS != nil {
+				userCookie.Secure = true
+				userCookie.SameSite = http.SameSiteNoneMode
+			}
+			setCookieExpires(&userCookie, session.MaxAge)
+			http.SetCookie(w, &userCookie)
+		}
+	} else {
+		logrus.Error("json.Marshal Error: ", err)
+	}
+
 	return &sidCookie
 }
 

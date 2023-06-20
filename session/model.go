@@ -15,6 +15,8 @@ type UserSession struct {
 	Ip          string     `bson:"ip,omitempty" json:"ip,omitempty"`
 	// login、logout
 	Status string `bson:"status" json:"status"`
+	// 邮箱
+	Email string `bson:"email" json:"email"`
 	// 头像
 	Avatar   string `bson:"avatar" json:"avatar"`
 	NickName string `bson:"nickName" json:"nickName"`

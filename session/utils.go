@@ -1,6 +1,9 @@
 package session
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/base64"
 	"net"
 	"net/http"
 	"os"
@@ -72,4 +75,40 @@ func GetCurrentDirectory() string {
 		logrus.Error(err)
 	}
 	return strings.Replace(dir, "\\", "/", -1)
+}
+
+// Encrypt encrypts the input string using AES-128 CBC mode with PKCS7 padding.
+// The key and iv must be 16 bytes long.
+func Encrypt(inputStr string, key string, iv string) (string, error) {
+	if iv == "" {
+		iv = "chemball"
+	}
+	// Create AES cipher instance
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return "", err
+	}
+
+	// Pad the input string
+	paddedInput := pkcs7Pad([]byte(inputStr), aes.BlockSize)
+
+	// Create CBC mode cipher
+	ivBytes := []byte(iv)
+	cbc := cipher.NewCBCEncrypter(block, ivBytes)
+
+	// Encrypt the padded input
+	encrypted := make([]byte, len(paddedInput))
+	cbc.CryptBlocks(encrypted, paddedInput)
+
+	// Encode the encrypted data using base64
+	encoded := base64.StdEncoding.EncodeToString(encrypted)
+
+	return encoded, nil
+}
+
+// pkcs7Pad pads the input data using PKCS7 padding scheme.
+func pkcs7Pad(data []byte, blockSize int) []byte {
+	padding := blockSize - len(data)%blockSize
+	padText := strings.Repeat(string(padding), padding)
+	return append(data, []byte(padText)...)
 }

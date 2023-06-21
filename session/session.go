@@ -125,7 +125,7 @@ func writeCookie(r *http.Request, w http.ResponseWriter, session UserSession) *h
 	}
 	userInfoStr, err := json.Marshal(userInfo)
 	if err == nil {
-		userInfoStr, encryptError := Encrypt(string(userInfoStr), sid, "chemball")
+		userInfoStr, encryptError := Encrypt(string(userInfoStr), "chemball.com", "chemball")
 		if encryptError == nil {
 			userCookie := http.Cookie{
 				Name:   ChemballUserKey,

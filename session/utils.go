@@ -108,6 +108,6 @@ func Encrypt(inputStr string, key string, iv string) (string, error) {
 // pkcs7Pad pads the input data using PKCS7 padding scheme.
 func pkcs7Pad(data []byte, blockSize int) []byte {
 	padding := blockSize - len(data)%blockSize
-	padText := strings.Repeat(string(padding), padding)
+	padText := strings.Repeat(" ", padding)
 	return append(data, []byte(padText)...)
 }

@@ -58,7 +58,7 @@ func loginFunc(resource *crud.Resource, c *gin.Context) jet.Func {
 func logoutFunc(resource *crud.Resource, c *gin.Context) jet.Func {
 
 	return func(a jet.Arguments) reflect.Value {
-		session.RemoveUserSession(resource, c.Request)
+		session.RemoveUserSession(resource, c.Request, c.Writer)
 		return reflect.ValueOf("")
 	}
 }

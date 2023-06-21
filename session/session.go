@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -149,6 +150,40 @@ func writeCookie(r *http.Request, w http.ResponseWriter, session UserSession) *h
 	return &sidCookie
 }
 
+func expiresCookie(r *http.Request, w http.ResponseWriter) *http.Cookie {
+	domain := GetDomain(r.Host)
+
+	// sid 是服务端判断 sessionId
+	sidCookie := http.Cookie{
+		Name:     SidKey,
+		Value:    "",
+		Path:     "/",
+		Domain:   domain,
+		HttpOnly: true,
+		Expires:  time.Unix(0, 0),
+	}
+	if r.TLS != nil {
+		sidCookie.Secure = true
+		sidCookie.SameSite = http.SameSiteNoneMode
+	}
+	http.SetCookie(w, &sidCookie)
+
+	userCookie := http.Cookie{
+		Name:    ChemballUserKey,
+		Value:   "",
+		Path:    "/",
+		Domain:  domain,
+		Expires: time.Unix(0, 0),
+	}
+	if r.TLS != nil {
+		userCookie.Secure = true
+		userCookie.SameSite = http.SameSiteNoneMode
+	}
+	http.SetCookie(w, &userCookie)
+
+	return &sidCookie
+}
+
 /*设置cookie的过期时间*/
 func setCookieExpires(cookie *http.Cookie, sessionMaxAge int64) {
 	if sessionMaxAge > 0 {
@@ -161,8 +196,8 @@ func setCookieExpires(cookie *http.Cookie, sessionMaxAge int64) {
 }
 
 // 退出登录
-func RemoveUserSession(resource *crud.Resource, r *http.Request) {
-	var sid = getCookieSid(r)
+func RemoveUserSession(resource *crud.Resource, request *http.Request, writer gin.ResponseWriter) {
+	var sid = getCookieSid(request)
 	if sid == "" {
 		return
 	}
@@ -170,7 +205,10 @@ func RemoveUserSession(resource *crud.Resource, r *http.Request) {
 	resource.FindById(sid, &session, crud.FindOneOptions{CollectionName: &collectionName})
 
 	session.Status = "logout"
-	resource.SaveOrUpdateOne(session, &crud.UpdateOption{
+	_, logoutError := resource.SaveOrUpdateOne(session, &crud.UpdateOption{
 		CollectionName: &collectionName,
 	})
+	if logoutError == nil {
+		expiresCookie(request, writer)
+	}
 }

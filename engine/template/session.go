@@ -36,6 +36,9 @@ func loginFunc(resource *crud.Resource, c *gin.Context) jet.Func {
 		userSession := session.UserSession{
 			Uid: mm["uid"].(string),
 		}
+		if mm["email"] != nil {
+			userSession.Email = mm["email"].(string)
+		}
 		if mm["avatar"] != nil {
 			userSession.Avatar = mm["avatar"].(string)
 		}
